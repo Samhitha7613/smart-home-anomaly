@@ -1,0 +1,3700 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartShield Lab — IoT Security Research</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fw: 'Space Grotesk', sans-serif;
+  --fm: 'JetBrains Mono', monospace;
+  --fd: 'Syne', sans-serif;
+  --sw: 256px;
+  --r: 14px; --rs: 9px;
+  --ease: cubic-bezier(.4,0,.2,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --transition: background .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
+}
+
+/* ── DARK THEME ── */
+[data-theme="dark"] {
+  --bg: #060a12;
+  --bs: #0a1120;
+  --br: #0f1a2e;
+  --bo: #162034;
+  --bd: rgba(255,255,255,.06);
+  --bdm: rgba(255,255,255,.11);
+  --t1: #e8edf5;
+  --t2: #7a8fa8;
+  --t3: #3d5070;
+  --sb: #04080f;
+  --sbd: rgba(255,255,255,.055);
+  --teal: #00c9a7;
+  --tl: #1ee8c4;
+  --tg: rgba(0,201,167,.13);
+  --slate: #5588c8;
+  --sl: #7aaee8;
+  --moss: #58a87a;
+  --ml: #72cc96;
+  --sand: #c4914a;
+  --sdl: #e0ad64;
+  --rust: #c45a3e;
+  --rl: #e07258;
+  --sage: #6a9e8a;
+  --purple: #8b6ef0;
+  --pl: #a890f5;
+  --ok: #00c9a7;
+  --warn: #e0ad64;
+  --danger: #e07258;
+  --info: #7aaee8;
+  --glow-teal: 0 0 40px rgba(0,201,167,.15);
+  --glow-rust: 0 0 40px rgba(196,90,62,.2);
+  --card-shadow: 0 4px 24px rgba(0,0,0,.35);
+  --sidebar-gradient: linear-gradient(180deg, #04080f 0%, #060c1a 100%);
+}
+
+/* ── LIGHT THEME ── */
+[data-theme="light"] {
+  --bg: #eef1f7;
+  --bs: #f8fafc;
+  --br: #ffffff;
+  --bo: #eaeef5;
+  --bd: rgba(0,0,0,.07);
+  --bdm: rgba(0,0,0,.12);
+  --t1: #0e1622;
+  --t2: #3d5070;
+  --t3: #8fa4bc;
+  --sb: #0d1a30;
+  --sbd: rgba(255,255,255,.08);
+  --teal: #009e83;
+  --tl: #00b898;
+  --tg: rgba(0,158,131,.1);
+  --slate: #3d6aaa;
+  --sl: #5588c8;
+  --moss: #3d8a5a;
+  --ml: #4ea870;
+  --sand: #9e7032;
+  --sdl: #bc8e48;
+  --rust: #9e4430;
+  --rl: #bc6050;
+  --sage: #4e8070;
+  --purple: #6a4ec8;
+  --pl: #8870e8;
+  --ok: #009e83;
+  --warn: #9e7032;
+  --danger: #9e4430;
+  --info: #3d6aaa;
+  --glow-teal: none;
+  --glow-rust: none;
+  --card-shadow: 0 2px 12px rgba(0,0,0,.08);
+  --sidebar-gradient: linear-gradient(180deg, #0d1a30 0%, #111f3a 100%);
+}
+
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: var(--fw);
+  background: var(--bg);
+  color: var(--t1);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  transition: var(--transition);
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bdm); border-radius: 99px; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sw);
+  background: var(--sidebar-gradient);
+  border-right: 1px solid var(--sbd);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+}
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: -80px; left: -80px;
+  width: 240px; height: 240px;
+  background: radial-gradient(circle, rgba(0,201,167,.09), transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.sidebar::after {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: -80px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(85,136,200,.07), transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+.sb-logo {
+  padding: 22px 18px 16px;
+  border-bottom: 1px solid var(--sbd);
+  position: relative; z-index: 1;
+}
+.sb-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 5px;
+}
+.sb-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--teal), var(--slate));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 18px rgba(0,201,167,.35);
+}
+.sb-name {
+  font-family: var(--fd);
+  font-size: 20px;
+  color: #fff;
+  letter-spacing: -.02em;
+}
+.sb-sub {
+  font-size: 9px;
+  color: rgba(255,255,255,.22);
+  font-family: var(--fm);
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  padding-left: 49px;
+}
+
+.sb-section {
+  font-size: 9px;
+  font-family: var(--fm);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.18);
+  padding: 18px 18px 6px;
+  position: relative; z-index: 1;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  margin: 2px 9px;
+  border-radius: var(--rs);
+  cursor: pointer;
+  color: rgba(255,255,255,.38);
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: all .2s var(--ease);
+  position: relative;
+  user-select: none;
+  z-index: 1;
+  border: 1px solid transparent;
+}
+.nav:hover {
+  color: rgba(255,255,255,.78);
+  background: rgba(255,255,255,.05);
+  transform: translateX(2px);
+}
+.nav.on {
+  color: #fff;
+  background: rgba(0,201,167,.1);
+  border-color: rgba(0,201,167,.15);
+}
+.nav.on::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 18%; bottom: 18%;
+  width: 3px;
+  background: linear-gradient(180deg, var(--teal), var(--sl));
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 10px var(--teal);
+}
+.nav-ic {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 7px;
+  font-size: 14px;
+  background: rgba(255,255,255,.05);
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.nav.on .nav-ic {
+  background: rgba(0,201,167,.16);
+  box-shadow: 0 0 14px rgba(0,201,167,.22);
+}
+.nav-badge {
+  margin-left: auto;
+  font-size: 9.5px;
+  font-family: var(--fm);
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: linear-gradient(135deg, rgba(139,110,240,.25), rgba(0,201,167,.15));
+  color: var(--pl);
+  border: 1px solid rgba(139,110,240,.3);
+}
+
+.sb-bottom {
+  margin-top: auto;
+  padding: 14px 9px;
+  border-top: 1px solid var(--sbd);
+  position: relative; z-index: 1;
+}
+.theme-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border-radius: var(--rs);
+  cursor: pointer;
+  color: rgba(255,255,255,.32);
+  font-size: 11px;
+  font-family: var(--fm);
+  transition: all .2s;
+  user-select: none;
+}
+.theme-row:hover { color: rgba(255,255,255,.65); background: rgba(255,255,255,.04); }
+.tpill {
+  position: relative;
+  width: 34px; height: 19px;
+  background: rgba(255,255,255,.09);
+  border-radius: 99px;
+  flex-shrink: 0;
+  transition: background .3s;
+  border: 1px solid rgba(255,255,255,.13);
+}
+.tpill::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.5);
+  transition: transform .3s var(--ease);
+}
+[data-theme="light"] .tpill { background: rgba(0,201,167,.28); border-color: rgba(0,201,167,.4); }
+[data-theme="light"] .tpill::after { transform: translateX(15px); background: var(--teal); }
+
+.live-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px;
+  font-size: 10px;
+  font-family: var(--fm);
+  color: rgba(255,255,255,.25);
+  margin-bottom: 4px;
+}
+.ldot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--tl);
+  animation: blink 2s infinite;
+  flex-shrink: 0;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
+
+/* ── MAIN AREA ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.topbar {
+  height: 58px;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 14px;
+  background: var(--bs);
+  flex-shrink: 0;
+  position: relative;
+}
+.topbar::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--teal), transparent);
+  opacity: .22;
+}
+.tb-title {
+  font-family: var(--fd);
+  font-size: 21px;
+  color: var(--t1);
+  letter-spacing: -.02em;
+}
+.tb-sub {
+  font-size: 10px;
+  font-family: var(--fm);
+  color: var(--t3);
+  letter-spacing: .08em;
+}
+.tb-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.clock {
+  font-family: var(--fm);
+  font-size: 11px;
+  color: var(--t2);
+  background: var(--bo);
+  padding: 5px 13px;
+  border-radius: var(--rs);
+  border: 1px solid var(--bd);
+  white-space: nowrap;
+}
+.live-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--rs);
+  font-size: 10px;
+  font-family: var(--fm);
+  font-weight: 600;
+  background: var(--tg);
+  color: var(--tl);
+  border: 1px solid rgba(0,201,167,.22);
+  box-shadow: 0 0 18px rgba(0,201,167,.1);
+}
+.lcdot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--tl);
+  animation: blink 2s infinite;
+}
+
+/* ── PAGE WRAPPER ── */
+.pw {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px 56px;
+}
+.page { display: none; animation: fadeUp .28s var(--ease); }
+.page.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── LAYOUT UTILS ── */
+.sl {
+  font-size: 10px;
+  font-family: var(--fm);
+  font-weight: 500;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sl::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--bd), transparent);
+}
+.mb24 { margin-bottom: 24px; }
+.mb20 { margin-bottom: 20px; }
+.mb16 { margin-bottom: 16px; }
+.g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.g5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+
+/* ── STAT CARDS ── */
+.sc {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: all .3s var(--ease);
+  cursor: default;
+}
+.sc::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ac, var(--teal)), transparent);
+  opacity: .9;
+}
+.sc::after {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 100px; height: 100px;
+  background: radial-gradient(circle at 100% 0%, var(--ac, var(--teal)), transparent 70%);
+  opacity: .06;
+  pointer-events: none;
+}
+.sc:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 32px rgba(0,0,0,.18);
+  border-color: var(--bdm);
+}
+.sc-label {
+  font-size: 9.5px;
+  font-family: var(--fm);
+  color: var(--t3);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 9px;
+}
+.sc-val {
+  font-family: var(--fd);
+  font-size: 40px;
+  color: var(--ac, var(--teal));
+  line-height: 1;
+  margin-bottom: 5px;
+  letter-spacing: -.02em;
+}
+.sc-hint { font-size: 10.5px; font-family: var(--fm); color: var(--t3); }
+
+/* ── CARDS ── */
+.card {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  overflow: hidden;
+  transition: var(--transition);
+  box-shadow: var(--card-shadow);
+}
+.ch {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--br);
+}
+.ct { font-size: 13px; font-weight: 600; color: var(--t1); }
+.cs { font-size: 10.5px; font-family: var(--fm); color: var(--t3); }
+.cb { padding: 18px; }
+
+/* ── DEVICE CARDS ── */
+.dc {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 15px;
+  transition: all .3s var(--ease);
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  box-shadow: var(--card-shadow);
+}
+.dc:hover { border-color: var(--bdm); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.18); }
+.dc.alerting { border-color: rgba(196,90,62,.55); background: rgba(196,90,62,.04); }
+.dc.alerting::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--rl);
+  animation: blink .9s infinite;
+}
+.dc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+.dc-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--ml);
+  box-shadow: 0 0 9px var(--moss);
+  transition: all .3s;
+}
+.dc.alerting .dc-dot {
+  background: var(--rl);
+  box-shadow: 0 0 9px var(--rust);
+  animation: blink .8s infinite;
+}
+.dc-badge {
+  font-size: 9.5px;
+  font-family: var(--fm);
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: rgba(88,168,122,.1);
+  color: var(--ml);
+  border: 1px solid rgba(88,168,122,.22);
+  transition: all .3s;
+}
+.dc.alerting .dc-badge {
+  background: rgba(196,90,62,.12);
+  color: var(--rl);
+  border-color: rgba(196,90,62,.3);
+}
+.dc-name { font-size: 13px; font-weight: 600; color: var(--t1); margin-bottom: 1px; }
+.dc-id { font-size: 9.5px; font-family: var(--fm); color: var(--t3); margin-bottom: 5px; }
+.dc-status { font-size: 11px; color: var(--t2); }
+.dc.alerting .dc-status { color: var(--rl); font-weight: 600; }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 9.5px;
+  font-family: var(--fm);
+  font-weight: 500;
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+.b-detected { background: rgba(88,168,122,.1); color: var(--ml); border: 1px solid rgba(88,168,122,.22); }
+.b-missed { background: rgba(196,90,62,.1); color: var(--rl); border: 1px solid rgba(196,90,62,.22); }
+.b-partial { background: rgba(196,145,74,.1); color: var(--sdl); border: 1px solid rgba(196,145,74,.22); }
+.b-na { background: var(--bo); color: var(--t3); border: 1px solid var(--bd); }
+.b-trig { background: rgba(85,136,200,.1); color: var(--sl); border: 1px solid rgba(85,136,200,.22); }
+.b-ntrig { background: rgba(196,90,62,.1); color: var(--rl); border: 1px solid rgba(196,90,62,.22); }
+.b-fast { background: rgba(196,90,62,.07); color: var(--rl); border: 1px solid rgba(196,90,62,.16); }
+.b-slow { background: rgba(196,145,74,.07); color: var(--sdl); border: 1px solid rgba(196,145,74,.16); }
+.b-atk {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 99px;
+  font-size: 9.5px;
+  font-family: var(--fm);
+  font-weight: 500;
+  background: var(--bo);
+  color: var(--t2);
+  border: 1px solid var(--bdm);
+}
+.atk-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.c-bf { background: var(--rl); }
+.c-ps { background: var(--sl); }
+.c-de { background: var(--sdl); }
+.c-rd { background: var(--tl); }
+.c-dd { background: var(--pl); }
+
+/* ── FORM ELEMENTS ── */
+.fr { display: grid; gap: 12px; margin-bottom: 12px; }
+.fr.c4 { grid-template-columns: repeat(4,1fr); }
+.fr.c3 { grid-template-columns: repeat(3,1fr) 1.1fr; }
+.fr.c1 { grid-template-columns: 1fr; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fl {
+  font-size: 9.5px;
+  font-family: var(--fm);
+  color: var(--t3);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+select, input, textarea {
+  background: var(--bo);
+  border: 1px solid var(--bdm);
+  border-radius: var(--rs);
+  color: var(--t1);
+  font-family: var(--fw);
+  font-size: 12.5px;
+  padding: 8px 11px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  width: 100%;
+}
+select:focus, input:focus, textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--tg);
+}
+textarea { resize: vertical; min-height: 62px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--rs);
+  font-family: var(--fw);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .2s var(--ease);
+  letter-spacing: .01em;
+}
+.btn-p {
+  background: linear-gradient(135deg, var(--teal), var(--sage));
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(0,201,167,.25);
+}
+.btn-p:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(0,201,167,.38);
+}
+.btn-g {
+  background: transparent;
+  color: var(--t2);
+  border: 1px solid var(--bdm);
+}
+.btn-g:hover { border-color: var(--tl); color: var(--tl); }
+.btn-sm { padding: 5px 13px; font-size: 11.5px; }
+.btn-full { width: 100%; padding: 12px; font-size: 13.5px; }
+.btn-dx {
+  background: rgba(196,90,62,.08);
+  color: var(--rl);
+  border: 1px solid rgba(196,90,62,.2);
+  padding: 2px 8px;
+  font-size: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: var(--fm);
+  transition: all .15s;
+}
+.btn-dx:hover { background: rgba(196,90,62,.22); }
+
+/* ── TABLES ── */
+.tw { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 9px 14px;
+  background: var(--br);
+  text-align: left;
+  font-size: 9.5px;
+  font-family: var(--fm);
+  font-weight: 500;
+  color: var(--t3);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bd);
+  white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--bd); transition: background .14s; }
+tbody tr:hover { background: var(--br); }
+tbody tr:last-child { border: none; }
+tbody td { padding: 8px 14px; color: var(--t1); vertical-align: middle; font-size: 12px; }
+.er td {
+  text-align: center;
+  color: var(--t3);
+  font-family: var(--fm);
+  font-size: 11.5px;
+  padding: 32px;
+}
+.mono { font-family: var(--fm); }
+.ts { font-family: var(--fm); font-size: 10.5px; color: var(--t3); }
+
+/* Detection rate bar */
+.dr-wrap { display: flex; align-items: center; gap: 8px; }
+.dr-track {
+  flex: 1;
+  height: 5px;
+  background: var(--bo);
+  border-radius: 99px;
+  overflow: hidden;
+  min-width: 44px;
+}
+.dr-fill { height: 100%; border-radius: 99px; transition: width .6s var(--ease); }
+.dr-lbl { font-size: 10.5px; font-family: var(--fm); font-weight: 600; white-space: nowrap; }
+
+/* ── FILTER ROW ── */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
+  background: var(--br);
+  border-bottom: 1px solid var(--bd);
+  flex-wrap: wrap;
+}
+.fsel { padding: 5px 10px; font-size: 11.5px; border-radius: 7px; min-width: 130px; }
+.count-chip {
+  font-size: 10.5px;
+  font-family: var(--fm);
+  color: var(--t3);
+  background: var(--bo);
+  padding: 3px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--bd);
+}
+
+/* Phase progress */
+.p2-bt { height: 6px; background: var(--bo); border-radius: 99px; overflow: hidden; }
+.p2-bf {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--ml));
+  border-radius: 99px;
+  transition: width .6s var(--ease);
+}
+.p2-pr {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 10.5px;
+  font-family: var(--fm);
+  color: var(--t3);
+}
+
+.phase-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--bd);
+  font-size: 12.5px;
+  color: var(--t2);
+}
+.phase-item:last-child { border: none; }
+.phase-item.done { color: var(--ml); }
+.phi::before {
+  content: '○';
+  color: var(--t3);
+  font-family: var(--fm);
+  min-width: 14px;
+  display: inline-block;
+}
+.phase-item.done .phi::before { content: '✓'; color: var(--ml); }
+
+.atk-prog-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bd);
+}
+.atk-prog-item:last-child { border: none; }
+.ap-dots { display: flex; gap: 4px; }
+.ap-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--bo);
+  border: 1px solid var(--bdm);
+  transition: all .3s;
+}
+.ap-dot.done {
+  background: var(--ml);
+  border-color: var(--moss);
+  box-shadow: 0 0 6px var(--moss);
+}
+.ap-cnt { font-family: var(--fm); font-size: 10.5px; color: var(--t3); }
+
+/* Verdicts */
+.vrd-good { color: var(--ml); font-family: var(--fm); font-size: 10.5px; font-weight: 600; }
+.vrd-partial { color: var(--sdl); font-family: var(--fm); font-size: 10.5px; font-weight: 600; }
+.vrd-bad { color: var(--rl); font-family: var(--fm); font-size: 10.5px; font-weight: 600; }
+.vrd-pend { color: var(--t3); font-family: var(--fm); font-size: 10.5px; }
+
+/* Export bar */
+.xbar { display: flex; gap: 9px; justify-content: flex-end; margin-bottom: 18px; }
+
+/* ── CLOUDWATCH CHARTS ── */
+.chart-card {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  overflow: hidden;
+  transition: all .3s var(--ease);
+  box-shadow: var(--card-shadow);
+}
+.chart-card:hover { border-color: var(--bdm); }
+.chart-card.alarming {
+  border-color: rgba(196,90,62,.45);
+  background: rgba(196,90,62,.03);
+}
+.cc-head {
+  padding: 12px 17px;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--br);
+}
+.cc-left { display: flex; align-items: center; gap: 10px; }
+.cc-title { font-size: 12.5px; font-weight: 600; color: var(--t1); }
+.cc-metric {
+  font-size: 9.5px;
+  font-family: var(--fm);
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--tg);
+  color: var(--tl);
+  border: 1px solid rgba(0,201,167,.18);
+}
+.cc-body { padding: 14px; }
+.cc-body canvas { max-height: 155px; }
+.cc-stats {
+  display: flex;
+  gap: 18px;
+  padding: 10px 17px;
+  border-top: 1px solid var(--bd);
+  background: var(--br);
+  flex-wrap: wrap;
+}
+.cst { display: flex; flex-direction: column; gap: 2px; }
+.cst-l { font-size: 9px; font-family: var(--fm); color: var(--t3); text-transform: uppercase; letter-spacing: .08em; }
+.cst-v { font-size: 14px; font-weight: 700; font-family: var(--fm); color: var(--t1); }
+.cst-v.good { color: var(--ml); }
+.cst-v.warn { color: var(--sdl); }
+.cst-v.bad { color: var(--rl); }
+.alarm-badge {
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: 9.5px;
+  font-family: var(--fm);
+  font-weight: 600;
+  background: rgba(196,90,62,.14);
+  color: var(--rl);
+  border: 1px solid rgba(196,90,62,.3);
+  animation: blink 1s infinite;
+}
+
+/* ── ATTACK ALARM CARDS ── */
+.aag {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.aac {
+  border-radius: var(--r);
+  border: 1px solid var(--bd);
+  background: var(--bs);
+  overflow: hidden;
+  position: relative;
+  transition: all .35s var(--ease);
+  box-shadow: var(--card-shadow);
+}
+.aac:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(0,0,0,.22); }
+.aac.loading::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--tl), transparent);
+  background-size: 200%;
+  animation: sweep 1.8s linear infinite;
+}
+.aac.ok::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ml), var(--teal));
+}
+.aac.alarm {
+  border-color: rgba(196,90,62,.5);
+  background: rgba(196,90,62,.04);
+}
+.aac.alarm::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--rl);
+  animation: blink 1.1s infinite;
+}
+@keyframes sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.aac-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 8px;
+}
+.aac-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: all .3s;
+}
+.aac.alarm .aac-icon { animation: wobble 1.6s ease infinite; }
+@keyframes wobble {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.09); }
+}
+.aac-info { flex: 1; min-width: 0; }
+.aac-name { font-size: 13px; font-weight: 600; color: var(--t1); margin-bottom: 1px; }
+.aac-metric { font-size: 9.5px; font-family: var(--fm); color: var(--t3); }
+.aac-state {
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-family: var(--fm);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all .3s;
+}
+.as-load { background: var(--bo); color: var(--t3); border: 1px solid var(--bd); }
+.as-ok { background: rgba(88,168,122,.12); color: var(--ml); border: 1px solid rgba(88,168,122,.22); }
+.as-alarm {
+  background: rgba(196,90,62,.14);
+  color: var(--rl);
+  border: 1px solid rgba(196,90,62,.3);
+  animation: blink 1s infinite;
+}
+.aac-body { padding: 2px 16px 12px; }
+.aac-vals { display: flex; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
+.av { display: flex; flex-direction: column; gap: 2px; }
+.av-l { font-size: 9px; font-family: var(--fm); color: var(--t3); text-transform: uppercase; letter-spacing: .08em; }
+.av-v {
+  font-family: var(--fd);
+  font-size: 26px;
+  color: var(--t1);
+  line-height: 1;
+  transition: color .3s;
+}
+.av-v.danger { color: var(--rl); }
+.av-v.ok { color: var(--ml); }
+.av-v.warn { color: var(--sdl); }
+.aac-foot {
+  padding: 8px 16px;
+  border-top: 1px solid var(--bd);
+  background: var(--br);
+  font-size: 10.5px;
+  font-family: var(--fm);
+  color: var(--t3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.aac.alarm .aac-foot { color: var(--rl); background: rgba(196,90,62,.05); }
+.sp-svg { width: 100%; height: 40px; display: block; overflow: visible; }
+
+/* ── THREAT TICKER ── */
+.ticker-wrap {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: var(--card-shadow);
+}
+.ticker-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 17px;
+  background: var(--br);
+  border-bottom: 1px solid var(--bd);
+}
+.ticker-label {
+  font-size: 9.5px;
+  font-family: var(--fm);
+  font-weight: 500;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--t3);
+}
+.ticker-ov { overflow: hidden; }
+.ticker-track {
+  display: flex;
+  white-space: nowrap;
+  animation: ticker 50s linear infinite;
+}
+.ticker-track:hover { animation-play-state: paused; }
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.ti {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 22px;
+  border-right: 1px solid var(--bd);
+  font-size: 11.5px;
+  font-family: var(--fm);
+  color: var(--t2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ti.alert { color: var(--rl); background: rgba(196,90,62,.04); }
+.ti.safe { color: var(--ml); }
+.ti.info { color: var(--sl); }
+
+/* ── API BANNER ── */
+.api-banner {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 18px 22px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: var(--card-shadow);
+}
+.api-icon { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
+.api-conn-status { display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-family: var(--fm); white-space: nowrap; }
+.cw-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--t3); transition: background .3s; }
+.cw-status-dot.connected { background: var(--ml); animation: blink 2s infinite; }
+.cw-status-dot.error { background: var(--rl); }
+
+/* Demo bar */
+.demo-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  background: rgba(196,145,74,.05);
+  border: 1px solid rgba(196,145,74,.14);
+  border-radius: var(--rs);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.demo-lbl { font-size: 10.5px; font-family: var(--fm); color: var(--sdl); flex-shrink: 0; }
+.demo-btn {
+  padding: 3px 12px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-family: var(--fm);
+  cursor: pointer;
+  border: 1px solid rgba(196,145,74,.26);
+  background: rgba(196,145,74,.08);
+  color: var(--sdl);
+  transition: all .2s;
+}
+.demo-btn:hover { background: rgba(196,145,74,.22); }
+
+/* Live bar */
+.live-bar {
+  margin-bottom: 16px;
+  padding: 10px 17px;
+  border-radius: var(--r);
+  border: 1px solid var(--bd);
+  background: var(--bs);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  box-shadow: var(--card-shadow);
+}
+.lb-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-family: var(--fm);
+  font-weight: 600;
+  background: var(--tg);
+  color: var(--tl);
+  border: 1px solid rgba(0,201,167,.22);
+}
+.sys-chip {
+  margin-left: auto;
+  padding: 4px 14px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: var(--fm);
+  background: rgba(88,168,122,.1);
+  color: var(--ml);
+  border: 1px solid rgba(88,168,122,.22);
+  transition: all .3s;
+}
+.sys-chip.danger {
+  background: rgba(196,90,62,.12);
+  color: var(--rl);
+  border-color: rgba(196,90,62,.28);
+}
+
+/* ── GEMINI AI ── */
+.ai-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  background: var(--br);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  margin-bottom: 18px;
+  box-shadow: var(--card-shadow);
+}
+.ai-logo { font-size: 26px; }
+.ai-cfg-label { font-size: 13px; font-weight: 600; color: var(--t1); margin-bottom: 2px; }
+.ai-cfg-sub { font-size: 11px; color: var(--t3); font-family: var(--fm); }
+.ai-key-wrap { flex: 1; display: flex; gap: 9px; align-items: center; }
+.ai-key-input { font-family: var(--fm); font-size: 11.5px; letter-spacing: .04em; }
+.ai-st {
+  font-size: 10.5px;
+  font-family: var(--fm);
+  padding: 3px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.ai-st.ready { background: rgba(88,168,122,.13); color: var(--ml); border: 1px solid rgba(88,168,122,.22); }
+.ai-st.unset { background: var(--bo); color: var(--t3); border: 1px solid var(--bd); }
+
+.qbtns { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
+.qbtn {
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-family: var(--fm);
+  background: var(--bo);
+  color: var(--t2);
+  border: 1px solid var(--bdm);
+  cursor: pointer;
+  transition: all .2s var(--ease);
+}
+.qbtn:hover {
+  border-color: var(--tl);
+  color: var(--tl);
+  background: var(--tg);
+  transform: translateY(-1px);
+}
+
+.ectrls {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  padding: 17px 18px;
+  background: var(--br);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  margin-bottom: 18px;
+  box-shadow: var(--card-shadow);
+}
+.ai-ra {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  overflow: hidden;
+  min-height: 300px;
+  box-shadow: var(--card-shadow);
+}
+.ai-rh {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--bd);
+  background: var(--br);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ai-rb-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-family: var(--fm);
+  color: var(--pl);
+  background: rgba(139,110,240,.1);
+  border: 1px solid rgba(139,110,240,.22);
+  padding: 2px 10px;
+  border-radius: 99px;
+}
+.ai-body { padding: 22px; }
+.ai-ph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px;
+  gap: 12px;
+  color: var(--t3);
+  font-family: var(--fm);
+  font-size: 11.5px;
+  text-align: center;
+}
+.ai-phi { font-size: 36px; opacity: .3; }
+.ai-content { font-size: 13px; line-height: 1.85; color: var(--t1); }
+.ai-content h3 { font-family: var(--fd); font-size: 17px; color: var(--t1); margin: 18px 0 8px; }
+.ai-content h3:first-child { margin-top: 0; }
+.ai-content p { margin-bottom: 12px; color: var(--t2); }
+.ai-content ul { padding-left: 18px; margin-bottom: 12px; }
+.ai-content li { margin-bottom: 5px; color: var(--t2); }
+.ai-content strong { color: var(--t1); font-weight: 600; }
+.ai-content code {
+  font-family: var(--fm);
+  font-size: 11px;
+  background: var(--bo);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--tl);
+}
+.ai-typing { display: inline-flex; align-items: center; gap: 5px; }
+.ai-typing span {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: dots 1.2s ease infinite;
+}
+.ai-typing span:nth-child(2) { animation-delay: .2s; }
+.ai-typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes dots {
+  0%,60%,100% { transform: translateY(0); opacity: .3; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+
+/* ── ARCHITECTURE PAGE ── */
+.arch-header-card {
+  background: linear-gradient(135deg, var(--bs), var(--br));
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 22px 26px;
+  margin-bottom: 22px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+.arch-header-card::after {
+  content: '';
+  position: absolute;
+  top: -50px; right: -50px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(0,201,167,.09), transparent 70%);
+  pointer-events: none;
+}
+.arch-title-big {
+  font-family: var(--fd);
+  font-size: 22px;
+  color: var(--t1);
+  margin-bottom: 9px;
+  letter-spacing: -.02em;
+}
+.arch-desc {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.75;
+  max-width: 720px;
+  margin-bottom: 15px;
+}
+.arch-legend { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; flex-wrap: wrap; }
+.al-item { display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-family: var(--fm); color: var(--t2); }
+.al-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* 4-layer diagram */
+.arch-diagram {
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--bs);
+  margin-bottom: 22px;
+  box-shadow: var(--card-shadow);
+}
+.ad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--br);
+  border-bottom: 1px solid var(--bd);
+}
+.ad-title { font-size: 13px; font-weight: 600; color: var(--t1); }
+.ad-path { font-size: 10px; font-family: var(--fm); color: var(--t3); }
+.ad-body { padding: 20px; }
+
+.layer-block { margin-bottom: 6px; }
+.layer-label {
+  font-size: 9px;
+  font-family: var(--fm);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px 6px 0 0;
+  display: inline-block;
+  margin-bottom: 0;
+}
+.layer-label.l1 { background: rgba(88,168,122,.12); color: var(--ml); border: 1px solid rgba(88,168,122,.2); border-bottom: none; }
+.layer-label.l2 { background: rgba(85,136,200,.1); color: var(--sl); border: 1px solid rgba(85,136,200,.2); border-bottom: none; }
+.layer-label.l3 { background: rgba(196,145,74,.1); color: var(--sdl); border: 1px solid rgba(196,145,74,.2); border-bottom: none; }
+.layer-label.l4 { background: rgba(0,201,167,.1); color: var(--tl); border: 1px solid rgba(0,201,167,.2); border-bottom: none; }
+
+.layer-content {
+  border-radius: 0 var(--rs) var(--rs) var(--rs);
+  padding: 14px;
+  display: flex;
+  gap: 11px;
+  flex-wrap: wrap;
+  position: relative;
+}
+.layer-content.l1 { background: rgba(88,168,122,.04); border: 1px solid rgba(88,168,122,.16); }
+.layer-content.l2 { background: rgba(85,136,200,.04); border: 1px solid rgba(85,136,200,.16); }
+.layer-content.l3 { background: rgba(196,145,74,.04); border: 1px solid rgba(196,145,74,.16); }
+.layer-content.l4 { background: rgba(0,201,167,.04); border: 1px solid rgba(0,201,167,.16); }
+
+.arch-node-card {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--rs);
+  padding: 12px 14px;
+  flex: 1;
+  min-width: 140px;
+  transition: all .25s var(--ease);
+  cursor: default;
+}
+.arch-node-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+.arch-node-card.l1:hover { border-color: rgba(88,168,122,.42); }
+.arch-node-card.l2:hover { border-color: rgba(85,136,200,.42); }
+.arch-node-card.l3:hover { border-color: rgba(196,145,74,.42); }
+.arch-node-card.l4:hover { border-color: rgba(0,201,167,.42); }
+.anc-title { font-size: 12.5px; font-weight: 600; margin-bottom: 3px; }
+.anc-title.l1 { color: var(--ml); }
+.anc-title.l2 { color: var(--sl); }
+.anc-title.l3 { color: var(--sdl); }
+.anc-title.l4 { color: var(--tl); }
+.anc-desc { font-size: 10.5px; color: var(--t2); line-height: 1.55; font-family: var(--fm); }
+.anc-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 7px; }
+.anc-tag {
+  font-size: 9px;
+  font-family: var(--fm);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bo);
+  color: var(--t3);
+  border: 1px solid var(--bd);
+}
+
+/* Connector arrows */
+.arch-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+  position: relative;
+}
+.arch-connector::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, var(--bd), var(--bdm), var(--bd));
+}
+.conn-label {
+  font-size: 10px;
+  font-family: var(--fm);
+  color: var(--t3);
+  background: var(--bo);
+  padding: 2px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--bd);
+  position: relative; z-index: 1;
+}
+.conn-arrow { color: var(--t3); font-size: 12px; position: relative; z-index: 1; }
+
+/* Threat model grid */
+.tm-grid {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.tm-card {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 15px;
+  transition: all .25s var(--ease);
+  cursor: default;
+  box-shadow: var(--card-shadow);
+}
+.tm-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.2); }
+.tm-icon { font-size: 22px; margin-bottom: 8px; }
+.tm-atk { font-size: 12.5px; font-weight: 600; color: var(--t1); margin-bottom: 3px; }
+.tm-tool { font-size: 10px; font-family: var(--fm); color: var(--t3); margin-bottom: 8px; }
+.tm-badges { display: flex; flex-direction: column; gap: 3px; }
+.tm-b {
+  font-size: 9px;
+  font-family: var(--fm);
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-block;
+  width: fit-content;
+}
+.tm-b.detect { background: rgba(88,168,122,.1); color: var(--ml); }
+.tm-b.miss { background: rgba(196,90,62,.1); color: var(--rl); }
+
+/* Tech stack */
+.tech-stack { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+.ts-card {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 15px 17px;
+  box-shadow: var(--card-shadow);
+}
+.ts-label {
+  font-size: 9.5px;
+  font-family: var(--fm);
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  margin-bottom: 10px;
+}
+.ts-items { display: flex; flex-direction: column; gap: 5px; }
+.ts-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--t2); }
+.ts-item::before { content: '▸'; color: var(--tl); font-size: 9px; flex-shrink: 0; }
+
+/* 5-phase flow */
+.flow-steps {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+  position: relative;
+}
+.flow-steps::before {
+  content: '';
+  position: absolute;
+  top: 30px; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--bd), var(--bdm), var(--bd), transparent);
+  z-index: 0;
+}
+.fs {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 15px 14px;
+  text-align: center;
+  position: relative; z-index: 1;
+  transition: all .25s var(--ease);
+  box-shadow: var(--card-shadow);
+}
+.fs:hover {
+  border-color: var(--tl);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+}
+.fs-num {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--br);
+  border: 1px solid var(--bdm);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fd);
+  font-size: 18px;
+  color: var(--tl);
+  margin: 0 auto 9px;
+}
+.fs-title { font-size: 12.5px; font-weight: 600; color: var(--t1); margin-bottom: 4px; }
+.fs-desc { font-size: 10.5px; color: var(--t2); line-height: 1.5; font-family: var(--fm); }
+
+/* ── PROJECT FLOW PAGE ── */
+.pf-container {
+  background: var(--bs);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  overflow: auto;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+}
+.pf-container svg { display: block; max-width: 100%; }
+
+/* ── TOAST NOTIFICATIONS ── */
+#toast-root {
+  position: fixed;
+  bottom: 22px; right: 22px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--br);
+  border: 1px solid var(--bdm);
+  border-radius: var(--rs);
+  padding: 11px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+  font-size: 12.5px;
+  box-shadow: 0 10px 36px rgba(0,0,0,.28);
+  animation: tin .28s var(--ease);
+  pointer-events: auto;
+}
+.toast.ok { border-left: 3px solid var(--ml); }
+.toast.inf { border-left: 3px solid var(--sl); }
+.toast.err { border-left: 3px solid var(--rl); }
+@keyframes tin {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes tout {
+  from { opacity: 1; }
+  to { opacity: 0; transform: translateX(16px); }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════ SIDEBAR ══════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-row">
+      <div class="sb-icon">🛡</div>
+      <div class="sb-name">SmartShield</div>
+    </div>
+    <div class="sb-sub">IoT Security Research Lab</div>
+  </div>
+
+  <div class="sb-section">Navigation</div>
+  <div class="nav on" data-page="monitor" onclick="sp('monitor', this)">
+    <div class="nav-ic">📊</div>Monitor Lab
+  </div>
+  <div class="nav" data-page="cloudwatch" onclick="sp('cloudwatch', this)">
+    <div class="nav-ic">📈</div>CloudWatch Graphs
+  </div>
+  <div class="nav" data-page="gemini" onclick="sp('gemini', this)">
+    <div class="nav-ic">✦</div>Gemini Analysis
+    <span class="nav-badge">AI</span>
+  </div>
+
+  <div class="sb-section">Research</div>
+  <div class="nav" data-page="architecture" onclick="sp('architecture', this)">
+    <div class="nav-ic">🏗</div>Architecture
+  </div>
+  <div class="nav" data-page="projectflow" onclick="sp('projectflow', this)">
+    <div class="nav-ic">🔀</div>Project Flow
+  </div>
+
+  <div class="sb-bottom">
+    <div class="live-row">
+      <div class="ldot"></div>
+      <span id="sb-clock">--:--:--</span>
+    </div>
+    <div class="theme-row" onclick="toggleTheme()">
+      <div class="tpill"></div>
+      <span id="theme-lbl">Dark mode</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════ MAIN ══════════════════════════════ -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title" id="tb-title">Monitor Lab</div>
+      <div class="tb-sub" id="tb-sub">REAL-TIME ATTACK LOGGING &amp; RESULTS</div>
+    </div>
+    <div class="tb-right">
+      <div class="clock" id="top-clock">--:--:--</div>
+      <div class="live-chip"><div class="lcdot"></div>Lab Active</div>
+    </div>
+  </div>
+
+  <div class="pw">
+
+  <!-- ═══════════ PAGE: MONITOR LAB ═══════════ -->
+  <div class="page active" id="page-monitor">
+    <div class="xbar">
+      <button class="btn btn-g btn-sm" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-g btn-sm" onclick="exportJSON()">⬇ JSON</button>
+      <button class="btn btn-g btn-sm" onclick="clearAll()" style="color:var(--rl)">✕ Clear</button>
+    </div>
+
+    <div class="sl mb20">Summary statistics</div>
+    <div class="g4 mb24">
+      <div class="sc" style="--ac:var(--teal)">
+        <div class="sc-label">Attacks run</div>
+        <div class="sc-val" id="s-attacks">0</div>
+        <div class="sc-hint">across all 5 types</div>
+      </div>
+      <div class="sc" style="--ac:var(--moss)">
+        <div class="sc-label">Detections</div>
+        <div class="sc-val" id="s-detected">0</div>
+        <div class="sc-hint">by any tool</div>
+      </div>
+      <div class="sc" style="--ac:var(--rust)">
+        <div class="sc-label">Missed</div>
+        <div class="sc-val" id="s-missed">0</div>
+        <div class="sc-hint">blind spots found</div>
+      </div>
+      <div class="sc" style="--ac:var(--sand)">
+        <div class="sc-label">Avg latency</div>
+        <div class="sc-val" id="s-latency">—</div>
+        <div class="sc-hint">seconds to detect</div>
+      </div>
+    </div>
+
+    <div class="sl mb20">Device status</div>
+    <div class="g5 mb24">
+      <div class="dc" id="dev-smart_lock">
+        <div class="dc-top">
+          <div class="dc-dot"></div>
+          <div class="dc-badge" id="dbg-smart_lock">Online</div>
+        </div>
+        <div class="dc-name">Smart Lock</div>
+        <div class="dc-id">SmartHome_Lock_01</div>
+        <div class="dc-status" id="dst-smart_lock">Normal traffic</div>
+      </div>
+      <div class="dc" id="dev-ip_camera">
+        <div class="dc-top">
+          <div class="dc-dot"></div>
+          <div class="dc-badge" id="dbg-ip_camera">Online</div>
+        </div>
+        <div class="dc-name">IP Camera</div>
+        <div class="dc-id">SmartHome_Camera_01</div>
+        <div class="dc-status" id="dst-ip_camera">Streaming</div>
+      </div>
+      <div class="dc" id="dev-smart_tv">
+        <div class="dc-top">
+          <div class="dc-dot"></div>
+          <div class="dc-badge" id="dbg-smart_tv">Online</div>
+        </div>
+        <div class="dc-name">Smart TV</div>
+        <div class="dc-id">SmartHome_TV_01</div>
+        <div class="dc-status" id="dst-smart_tv">Active</div>
+      </div>
+      <div class="dc" id="dev-smart_bulb">
+        <div class="dc-top">
+          <div class="dc-dot"></div>
+          <div class="dc-badge" id="dbg-smart_bulb">Online</div>
+        </div>
+        <div class="dc-name">Smart Bulb</div>
+        <div class="dc-id">SmartHome_Bulb_01</div>
+        <div class="dc-status" id="dst-smart_bulb">Normal</div>
+      </div>
+      <div class="dc" id="dev-motion_sensor">
+        <div class="dc-top">
+          <div class="dc-dot"></div>
+          <div class="dc-badge" id="dbg-motion_sensor">Online</div>
+        </div>
+        <div class="dc-name">Motion Sensor</div>
+        <div class="dc-id">SmartHome_Sensor_01</div>
+        <div class="dc-status" id="dst-motion_sensor">Monitoring</div>
+      </div>
+    </div>
+
+    <div class="sl mb20">Log new attack run</div>
+    <div class="card mb24">
+      <div class="ch">
+        <div class="ct">Record experiment result</div>
+        <div class="cs">Fill in after each attack run</div>
+      </div>
+      <div class="cb">
+        <div class="fr c4">
+          <div class="fg">
+            <label class="fl">Attack type</label>
+            <select id="f-atk">
+              <option>Brute Force</option>
+              <option>Port Scan</option>
+              <option>Data Exfiltration</option>
+              <option>Rogue Device</option>
+              <option>DDoS Flood</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Run number</label>
+            <select id="f-run">
+              <option>Run 1</option>
+              <option>Run 2</option>
+              <option>Run 3</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Target device</label>
+            <select id="f-dev">
+              <option>Smart Lock</option>
+              <option>IP Camera</option>
+              <option>Smart TV</option>
+              <option>Smart Bulb</option>
+              <option>Motion Sensor</option>
+              <option>All Devices</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Attack mode</label>
+            <select id="f-mode">
+              <option>Fast (aggressive)</option>
+              <option>Slow (stealth)</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr c3">
+          <div class="fg">
+            <label class="fl">GuardDuty result</label>
+            <select id="f-gd">
+              <option>Detected</option>
+              <option>Missed</option>
+              <option>Partial</option>
+              <option>N/A</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">CloudWatch result</label>
+            <select id="f-cw">
+              <option>Detected</option>
+              <option>Missed</option>
+              <option>Partial</option>
+              <option>N/A</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Lambda / SNS result</label>
+            <select id="f-lam">
+              <option>Triggered</option>
+              <option>Not triggered</option>
+              <option>N/A</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Latency (sec)</label>
+            <input type="number" id="f-lat" placeholder="e.g. 72" min="0" max="9999">
+          </div>
+        </div>
+        <div class="fr c1">
+          <div class="fg">
+            <label class="fl">Notes / observations</label>
+            <textarea id="f-notes" placeholder="e.g. GuardDuty finding type: Recon:EC2/PortProbeUnprotectedPort — fired after 15-port threshold."></textarea>
+          </div>
+        </div>
+        <button class="btn btn-p btn-full" id="log-btn" onclick="logRun()">+ Log run</button>
+      </div>
+    </div>
+
+    <div class="sl mb20">Attack run log</div>
+    <div class="card mb24">
+      <div class="filter-row">
+        <select class="fsel" id="fi-atk" onchange="renderLog()">
+          <option value="All">All attacks</option>
+          <option>Brute Force</option>
+          <option>Port Scan</option>
+          <option>Data Exfiltration</option>
+          <option>Rogue Device</option>
+          <option>DDoS Flood</option>
+        </select>
+        <select class="fsel" id="fi-res" onchange="renderLog()">
+          <option value="All">All results</option>
+          <option>Detected</option>
+          <option>Missed</option>
+          <option>Partial</option>
+        </select>
+        <div style="margin-left:auto">
+          <span class="count-chip" id="run-count">0 runs</span>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Attack</th><th>Run</th><th>Mode</th><th>Device</th>
+              <th>GuardDuty</th><th>CloudWatch</th><th>Lambda</th>
+              <th>Latency</th><th>Time</th><th>Notes</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="run-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sl mb20">Results summary table</div>
+    <div class="card mb24">
+      <div class="ch">
+        <div class="ct">Detection performance per attack type</div>
+        <div class="cs">Auto-calculated · updates on every log</div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>Attack type</th><th>Runs</th><th>GuardDuty</th><th>CloudWatch</th>
+              <th>Lambda</th><th>Avg latency</th><th>Detection rate</th><th>Verdict</th>
+            </tr>
+          </thead>
+          <tbody id="res-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sl mb20">Phase progress</div>
+    <div class="g2">
+      <div class="card">
+        <div class="ch">
+          <div class="ct">Phase 1 — Build the lab</div>
+          <div class="cs">8/11 complete</div>
+        </div>
+        <div class="cb">
+          <div class="phase-item done"><div class="phi"></div>5 IoT Things created</div>
+          <div class="phase-item done"><div class="phi"></div>Certificates downloaded</div>
+          <div class="phase-item done"><div class="phi"></div>MQTT Explorer connected</div>
+          <div class="phase-item done"><div class="phi"></div>MQTT Test Client verified</div>
+          <div class="phase-item done"><div class="phi"></div>CloudWatch log group active</div>
+          <div class="phase-item done"><div class="phi"></div>Metric filter configured</div>
+          <div class="phase-item done"><div class="phi"></div>CloudWatch alarm created</div>
+          <div class="phase-item done"><div class="phi"></div>GuardDuty enabled</div>
+          <div class="phase-item"><div class="phi"></div>SNS email alerts</div>
+          <div class="phase-item"><div class="phi"></div>VPC Flow Logs enabled</div>
+          <div class="phase-item"><div class="phi"></div>Lambda rogue detector</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">
+          <div class="ct">Phase 2 — Attack coverage</div>
+          <div class="cs" id="p2-sub">0 / 15 runs complete</div>
+        </div>
+        <div class="cb">
+          <div id="phase2-list"></div>
+          <div style="margin-top:14px">
+            <div class="p2-bt"><div class="p2-bf" id="p2-fill" style="width:0%"></div></div>
+            <div class="p2-pr">
+              <span id="p2-done">0 runs done</span>
+              <span id="p2-pct">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAGE: CLOUDWATCH ═══════════ -->
+  <div class="page" id="page-cloudwatch">
+    <div class="api-banner">
+      <div class="api-icon">☁️</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:var(--t1);margin-bottom:4px">API Gateway Endpoint</div>
+        <div style="font-size:11.5px;color:var(--t2);margin-bottom:12px">Paste your Lambda URL once. Auto-refreshes every 8s.</div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end">
+          <div class="fg">
+            <label class="fl">API Gateway URL</label>
+            <input id="api-url" placeholder="https://xxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/metrics" style="font-family:var(--fm);font-size:11.5px">
+          </div>
+          <button class="btn btn-p btn-sm" onclick="saveApiUrl()">Save &amp; Connect</button>
+        </div>
+      </div>
+      <div class="api-conn-status">
+        <div class="cw-status-dot" id="cw-dot"></div>
+        <span id="cw-txt" style="font-size:10.5px;color:var(--t3)">Not connected</span>
+      </div>
+    </div>
+
+    <div class="demo-bar">
+      <div class="demo-lbl">Demo mode — simulate alarms:</div>
+      <button class="demo-btn" onclick="demoAlarm('brute')">🔐 Brute Force</button>
+      <button class="demo-btn" onclick="demoAlarm('ddos')">💥 DDoS Flood</button>
+      <button class="demo-btn" onclick="demoAlarm('exfil')">📤 Exfiltration</button>
+      <button class="demo-btn" onclick="demoAlarm('rogue')">👾 Rogue Device</button>
+      <button class="demo-btn" onclick="demoAlarm('portscan')">🔍 Port Scan</button>
+      <button class="demo-btn" onclick="demoAlarm('all')">🚨 All Alarms</button>
+      <button class="demo-btn" onclick="demoAlarm('clear')" style="margin-left:auto">✓ Clear all</button>
+    </div>
+
+    <div class="live-bar" id="live-bar" style="display:none">
+      <div class="lb-badge"><div class="lcdot"></div>⚡ LIVE MODE</div>
+      <div style="font-size:10.5px;font-family:var(--fm);color:var(--t2)">API Gateway → Lambda → CloudWatch</div>
+      <div class="sys-chip" id="sys-chip">✓ System Status: Secure</div>
+      <div style="font-size:10.5px;font-family:var(--fm);color:var(--t3)">Updated: <span id="last-upd">—</span></div>
+      <button class="btn btn-g btn-sm" onclick="fetchLiveData()">↻ Refresh</button>
+    </div>
+
+    <div class="ticker-wrap">
+      <div class="ticker-head">
+        <div class="ldot"></div>
+        <div class="ticker-label">Live threat feed</div>
+        <div style="margin-left:auto;font-size:10px;font-family:var(--fm);color:var(--t3)" id="ticker-ts">—</div>
+      </div>
+      <div class="ticker-ov">
+        <div class="ticker-track" id="ticker-track"></div>
+      </div>
+    </div>
+
+    <div class="sl mb20">Attack detection status</div>
+    <div class="aag">
+      <!-- Brute Force card -->
+      <div class="aac loading" id="aac-brute">
+        <div class="aac-top">
+          <div class="aac-icon" style="background:rgba(196,90,62,.1)">🔐</div>
+          <div class="aac-info">
+            <div class="aac-name">Brute Force</div>
+            <div class="aac-metric">AWS/IoT · Connect.AuthError</div>
+          </div>
+          <div class="aac-state as-load" id="st-brute">—</div>
+        </div>
+        <div class="aac-body">
+          <div class="aac-vals">
+            <div class="av"><div class="av-l">Failures/min</div><div class="av-v" id="v-brute-cur">—</div></div>
+            <div class="av"><div class="av-l">Peak</div><div class="av-v" id="v-brute-peak">—</div></div>
+            <div class="av"><div class="av-l">Threshold</div><div class="av-v" style="font-size:18px;color:var(--t3)">10</div></div>
+          </div>
+          <svg class="sp-svg" id="sp-brute" viewBox="0 0 200 40" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="aac-foot"><span id="ft-brute">Waiting for data…</span><span>Smart Lock</span></div>
+      </div>
+
+      <!-- DDoS card -->
+      <div class="aac loading" id="aac-ddos">
+        <div class="aac-top">
+          <div class="aac-icon" style="background:rgba(212,83,126,.1)">💥</div>
+          <div class="aac-info">
+            <div class="aac-name">DDoS Flood</div>
+            <div class="aac-metric">AWS/IoT · PublishIn.Success spike</div>
+          </div>
+          <div class="aac-state as-load" id="st-ddos">—</div>
+        </div>
+        <div class="aac-body">
+          <div class="aac-vals">
+            <div class="av"><div class="av-l">Msg rate</div><div class="av-v" id="v-ddos-cur">—</div></div>
+            <div class="av"><div class="av-l">Baseline avg</div><div class="av-v" id="v-ddos-base" style="font-size:18px">—</div></div>
+            <div class="av"><div class="av-l">Spike ×</div><div class="av-v" id="v-ddos-ratio" style="font-size:18px">—</div></div>
+          </div>
+          <svg class="sp-svg" id="sp-ddos" viewBox="0 0 200 40" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="aac-foot"><span id="ft-ddos">Waiting for data…</span><span>Smart Bulb</span></div>
+      </div>
+
+      <!-- Exfiltration card -->
+      <div class="aac loading" id="aac-exfil">
+        <div class="aac-top">
+          <div class="aac-icon" style="background:rgba(196,145,74,.1)">📤</div>
+          <div class="aac-info">
+            <div class="aac-name">Data Exfiltration</div>
+            <div class="aac-metric">AWS/IoT · PublishIn.Bytes burst</div>
+          </div>
+          <div class="aac-state as-load" id="st-exfil">—</div>
+        </div>
+        <div class="aac-body">
+          <div class="aac-vals">
+            <div class="av"><div class="av-l">Bytes current</div><div class="av-v" id="v-exfil-cur">—</div></div>
+            <div class="av"><div class="av-l">Spike ratio</div><div class="av-v" id="v-exfil-ratio">—</div></div>
+            <div class="av"><div class="av-l">Avg baseline</div><div class="av-v" id="v-exfil-base" style="font-size:18px">—</div></div>
+          </div>
+          <svg class="sp-svg" id="sp-exfil" viewBox="0 0 200 40" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="aac-foot"><span id="ft-exfil">Waiting for data…</span><span>IP Camera</span></div>
+      </div>
+
+      <!-- Rogue Device card -->
+      <div class="aac loading" id="aac-rogue">
+        <div class="aac-top">
+          <div class="aac-icon" style="background:rgba(0,201,167,.08)">👾</div>
+          <div class="aac-info">
+            <div class="aac-name">Rogue Device</div>
+            <div class="aac-metric">SmartHomeSecurity · RogueDevice</div>
+          </div>
+          <div class="aac-state as-load" id="st-rogue">—</div>
+        </div>
+        <div class="aac-body">
+          <div class="aac-vals">
+            <div class="av"><div class="av-l">Attempts</div><div class="av-v" id="v-rogue-cur">—</div></div>
+            <div class="av"><div class="av-l">Total today</div><div class="av-v" id="v-rogue-total">—</div></div>
+          </div>
+          <svg class="sp-svg" id="sp-rogue" viewBox="0 0 200 40" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="aac-foot"><span id="ft-rogue">Waiting for data…</span><span>Rogue_Device_99</span></div>
+      </div>
+
+      <!-- Port Scan card -->
+      <div class="aac loading" id="aac-portscan">
+        <div class="aac-top">
+          <div class="aac-icon" style="background:rgba(85,136,200,.1)">🔍</div>
+          <div class="aac-info">
+            <div class="aac-name">Port Scan</div>
+            <div class="aac-metric">GuardDuty · Recon:EC2/PortProbe</div>
+          </div>
+          <div class="aac-state as-load" id="st-portscan">—</div>
+        </div>
+        <div class="aac-body">
+          <div class="aac-vals">
+            <div class="av"><div class="av-l">GD Findings</div><div class="av-v" id="v-ps-count">—</div></div>
+            <div class="av"><div class="av-l">Severity</div><div class="av-v" id="v-ps-sev" style="font-size:18px">—</div></div>
+          </div>
+          <div style="font-size:10.5px;font-family:var(--fm);color:var(--t3);margin-top:5px" id="ps-type">No GuardDuty finding yet</div>
+        </div>
+        <div class="aac-foot"><span id="ft-ps">Monitoring VPC</span><span>VPC Subnet</span></div>
+      </div>
+
+      <!-- Security Score card -->
+      <div class="aac loading" id="aac-score">
+        <div class="aac-top">
+          <div class="aac-icon" style="background:rgba(0,201,167,.08)">🛡</div>
+          <div class="aac-info">
+            <div class="aac-name">Security Score</div>
+            <div class="aac-metric">Calculated from all 5 detectors</div>
+          </div>
+          <div class="aac-state as-load" id="st-score">—</div>
+        </div>
+        <div class="aac-body">
+          <div class="aac-vals">
+            <div class="av"><div class="av-l">Score /100</div><div class="av-v" id="v-score" style="font-size:38px">—</div></div>
+            <div class="av"><div class="av-l">Active alarms</div><div class="av-v danger" id="v-active">—</div></div>
+            <div class="av"><div class="av-l">Detectors OK</div><div class="av-v ok" id="v-ok">—</div></div>
+          </div>
+          <div style="height:5px;background:var(--bo);border-radius:99px;overflow:hidden;margin-top:7px">
+            <div id="score-bar" style="height:100%;border-radius:99px;transition:width .7s,background .4s;width:0%"></div>
+          </div>
+        </div>
+        <div class="aac-foot"><span id="ft-score">Calculating…</span><span>All detectors</span></div>
+      </div>
+    </div>
+
+    <div class="sl mb20">Raw CloudWatch metrics</div>
+    <div class="g2">
+      <div class="chart-card" id="cc-publish">
+        <div class="cc-head">
+          <div class="cc-left">
+            <div class="cc-title">MQTT Publish Rate</div>
+            <div class="cc-metric">PublishIn.Success</div>
+          </div>
+        </div>
+        <div class="cc-body"><canvas id="ch-publish"></canvas></div>
+        <div class="cc-stats">
+          <div class="cst"><div class="cst-l">Current</div><div class="cst-v" id="cs-pub-cur">—</div></div>
+          <div class="cst"><div class="cst-l">Peak</div><div class="cst-v bad" id="cs-pub-peak">—</div></div>
+          <div class="cst"><div class="cst-l">Avg</div><div class="cst-v" id="cs-pub-avg">—</div></div>
+          <div class="cst"><div class="cst-l">Anomalies</div><div class="cst-v bad" id="cs-pub-anom">0</div></div>
+        </div>
+      </div>
+      <div class="chart-card" id="cc-auth">
+        <div class="cc-head">
+          <div class="cc-left">
+            <div class="cc-title">Auth Failures</div>
+            <div class="cc-metric">Connect.AuthError</div>
+          </div>
+          <div id="auth-badge" style="display:none" class="alarm-badge">⚠ ALARM</div>
+        </div>
+        <div class="cc-body"><canvas id="ch-auth"></canvas></div>
+        <div class="cc-stats">
+          <div class="cst"><div class="cst-l">Current</div><div class="cst-v" id="cs-auth-cur">—</div></div>
+          <div class="cst"><div class="cst-l">Peak</div><div class="cst-v bad" id="cs-auth-peak">—</div></div>
+          <div class="cst"><div class="cst-l">Threshold</div><div class="cst-v warn">10/min</div></div>
+          <div class="cst"><div class="cst-l">Status</div><div class="cst-v" id="cs-auth-st">—</div></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-head">
+          <div class="cc-left">
+            <div class="cc-title">Outbound Traffic</div>
+            <div class="cc-metric">PublishIn.Bytes</div>
+          </div>
+        </div>
+        <div class="cc-body"><canvas id="ch-bytes"></canvas></div>
+        <div class="cc-stats">
+          <div class="cst"><div class="cst-l">Current</div><div class="cst-v" id="cs-bytes-cur">—</div></div>
+          <div class="cst"><div class="cst-l">Avg</div><div class="cst-v good" id="cs-bytes-avg">—</div></div>
+          <div class="cst"><div class="cst-l">Spike ratio</div><div class="cst-v" id="cs-bytes-ratio">—</div></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-head">
+          <div class="cc-left">
+            <div class="cc-title">Active Connections</div>
+            <div class="cc-metric">ActiveConnections</div>
+          </div>
+        </div>
+        <div class="cc-body"><canvas id="ch-conns"></canvas></div>
+        <div class="cc-stats">
+          <div class="cst"><div class="cst-l">Current</div><div class="cst-v" id="cs-conn-cur">—</div></div>
+          <div class="cst"><div class="cst-l">Expected</div><div class="cst-v good">5</div></div>
+          <div class="cst"><div class="cst-l">Rogue</div><div class="cst-v" id="cs-conn-rogue">0</div></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-head">
+          <div class="cc-left">
+            <div class="cc-title">Brute Force Events</div>
+            <div class="cc-metric">SmartHomeSecurity · BruteForceAttack</div>
+          </div>
+        </div>
+        <div class="cc-body"><canvas id="ch-brute"></canvas></div>
+        <div class="cc-stats">
+          <div class="cst"><div class="cst-l">Current</div><div class="cst-v bad" id="cs-brute-cur">—</div></div>
+          <div class="cst"><div class="cst-l">Total today</div><div class="cst-v bad" id="cs-brute-total">—</div></div>
+          <div class="cst"><div class="cst-l">Avg latency</div><div class="cst-v" id="cs-brute-lat">—</div></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-head">
+          <div class="cc-left">
+            <div class="cc-title">Rogue Device Attempts</div>
+            <div class="cc-metric">SmartHomeSecurity · RogueDevice</div>
+          </div>
+        </div>
+        <div class="cc-body"><canvas id="ch-rogue"></canvas></div>
+        <div class="cc-stats">
+          <div class="cst"><div class="cst-l">Current</div><div class="cst-v bad" id="cs-rogue-cur">—</div></div>
+          <div class="cst"><div class="cst-l">Total</div><div class="cst-v bad" id="cs-rogue-total">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl mb20" style="margin-top:22px">GuardDuty findings — live</div>
+    <div class="card">
+      <div class="ch">
+        <div class="ct">Recent findings</div>
+        <div class="cs" id="gd-status">Connect API to load</div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Time</th><th>Finding type</th><th>Severity</th><th>Resource</th><th>Status</th></tr>
+          </thead>
+          <tbody id="gd-tbody"><tr class="er"><td colspan="5">No findings yet</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAGE: ARCHITECTURE ═══════════ -->
+  <div class="page" id="page-architecture">
+    <div class="arch-header-card">
+      <div class="arch-title-big">Real-Time Anomaly Detection in Smart Home IoT Networks</div>
+      <div class="arch-desc">An empirical evaluation of AWS cloud-native security tools against 5 real-world IoT attack scenarios. The project simulates a smart home environment, executes attacks, and measures detection rate, latency, and blind spots — producing original research findings.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="badge b-trig" style="padding:4px 12px;font-size:11px">Final Year Project</span>
+        <span class="badge b-trig" style="padding:4px 12px;font-size:11px">Cybersecurity</span>
+        <span class="badge b-trig" style="padding:4px 12px;font-size:11px">AWS Cloud</span>
+        <span class="badge b-trig" style="padding:4px 12px;font-size:11px">IoT Security</span>
+        <span class="badge b-trig" style="padding:4px 12px;font-size:11px">Empirical Research</span>
+      </div>
+    </div>
+
+    <div class="arch-legend mb20">
+      <div class="al-item"><div class="al-dot" style="background:var(--ml)"></div>Real devices</div>
+      <div class="al-item"><div class="al-dot" style="background:var(--sl)"></div>AWS IoT Core</div>
+      <div class="al-item"><div class="al-dot" style="background:var(--sdl)"></div>Detection layer</div>
+      <div class="al-item"><div class="al-dot" style="background:var(--tl)"></div>Response layer</div>
+    </div>
+
+    <div class="arch-diagram mb24">
+      <div class="ad-header">
+        <div class="ad-title">4-Layer IoT Security Architecture</div>
+        <div class="ad-path">MacBook + Android → AWS IoT Core → GuardDuty / CloudWatch → Dashboard</div>
+      </div>
+      <div class="ad-body">
+        <div class="layer-block">
+          <div class="layer-label l1">Layer 1 — Real Devices</div>
+          <div class="layer-content l1">
+            <div class="arch-node-card l1">
+              <div class="anc-title l1">MacBook</div>
+              <div class="anc-desc">Python scripts · MQTT Explorer<br>Lock · Camera · TV</div>
+              <div class="anc-tags"><span class="anc-tag">Python</span><span class="anc-tag">paho-mqtt</span></div>
+            </div>
+            <div class="arch-node-card l1">
+              <div class="anc-title l1">Android Phone</div>
+              <div class="anc-desc">IoT MQTT Panel app<br>Motion Sensor · Rogue Device</div>
+              <div class="anc-tags"><span class="anc-tag">IoT Panel</span><span class="anc-tag">Accelerometer</span></div>
+            </div>
+            <div class="arch-node-card l1">
+              <div class="anc-title l1">MQTT Explorer</div>
+              <div class="anc-desc">Manual testing GUI<br>Verified messages in AWS</div>
+              <div class="anc-tags"><span class="anc-tag">GUI tool</span><span class="anc-tag">Manual</span></div>
+            </div>
+            <div class="arch-node-card l1" style="max-width:160px">
+              <div class="anc-title l1">Protocol</div>
+              <div class="anc-desc"><strong style="color:var(--ml)">MQTT / TLS</strong><br>Port 8883 · Encrypted</div>
+              <div class="anc-tags"><span class="anc-tag">X.509 cert</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-connector"><span class="conn-label">MQTT/TLS</span><span class="conn-arrow" style="margin-left:6px">↓</span></div>
+
+        <div class="layer-block">
+          <div class="layer-label l2">Layer 2 — AWS IoT Core (MQTT Broker) · a3o87btpsicy11-ats.iot.us-east-1.amazonaws.com</div>
+          <div class="layer-content l2">
+            <div class="arch-node-card l2">
+              <div class="anc-title l2">Lock_01</div>
+              <div class="anc-desc">SmartHome_Lock_01<br>X.509 cert</div>
+              <div class="anc-tags"><span class="anc-tag">MQTT</span></div>
+            </div>
+            <div class="arch-node-card l2">
+              <div class="anc-title l2">Camera_01</div>
+              <div class="anc-desc">SmartHome_Camera_01<br>X.509 cert</div>
+              <div class="anc-tags"><span class="anc-tag">High BW</span></div>
+            </div>
+            <div class="arch-node-card l2">
+              <div class="anc-title l2">TV_01</div>
+              <div class="anc-desc">SmartHome_TV_01<br>X.509 cert</div>
+              <div class="anc-tags"><span class="anc-tag">pmset</span></div>
+            </div>
+            <div class="arch-node-card l2">
+              <div class="anc-title l2">Bulb_01</div>
+              <div class="anc-desc">SmartHome_Bulb_01<br>X.509 cert</div>
+              <div class="anc-tags"><span class="anc-tag">Low traffic</span></div>
+            </div>
+            <div class="arch-node-card l2">
+              <div class="anc-title l2">Sensor_01</div>
+              <div class="anc-desc">SmartHome_Sensor_01<br>X.509 cert</div>
+              <div class="anc-tags"><span class="anc-tag">📱 Phone</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-connector"><span class="conn-label">Metrics · Logs · Events</span><span class="conn-arrow" style="margin-left:6px">↓</span></div>
+
+        <div class="layer-block">
+          <div class="layer-label l3">Layer 3 — Detection &amp; Alerting</div>
+          <div class="layer-content l3">
+            <div class="arch-node-card l3">
+              <div class="anc-title l3">GuardDuty</div>
+              <div class="anc-desc">Threat intelligence<br>VPC · DNS · CloudTrail<br>24h baseline active</div>
+              <div class="anc-tags"><span class="anc-tag">ML-based</span><span class="anc-tag">VPC</span></div>
+            </div>
+            <div class="arch-node-card l3">
+              <div class="anc-title l3">CloudWatch</div>
+              <div class="anc-desc">5 alarms · Log groups<br>Metric filters · Dashboards<br>AWSIotLogsV2</div>
+              <div class="anc-tags"><span class="anc-tag">Threshold</span><span class="anc-tag">1-min</span></div>
+            </div>
+            <div class="arch-node-card l3">
+              <div class="anc-title l3">VPC Flow Logs</div>
+              <div class="anc-desc">All network traffic<br>/vpc/flowlogs/smarthome<br>Port scan detection</div>
+              <div class="anc-tags"><span class="anc-tag">L3/L4</span><span class="anc-tag">5-min</span></div>
+            </div>
+            <div class="arch-node-card l3">
+              <div class="anc-title l3">Lambda</div>
+              <div class="anc-desc">SmartHomeRogueDetector<br>Cert whitelist check<br>IoT Rule trigger</div>
+              <div class="anc-tags"><span class="anc-tag">Python</span><span class="anc-tag">boto3</span></div>
+            </div>
+            <div class="arch-node-card l3">
+              <div class="anc-title l3">SNS</div>
+              <div class="anc-desc">SmartHomeAlerts<br>Email subscription<br>Confirmed active</div>
+              <div class="anc-tags"><span class="anc-tag">Email</span><span class="anc-tag">Active</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-connector"><span class="conn-label">API Gateway → Lambda → CloudWatch API</span><span class="conn-arrow" style="margin-left:6px">↓</span></div>
+
+        <div class="layer-block">
+          <div class="layer-label l4">Layer 4 — Monitoring &amp; Research Dashboard</div>
+          <div class="layer-content l4">
+            <div class="arch-node-card l4">
+              <div class="anc-title l4">SmartShield Dashboard</div>
+              <div class="anc-desc">Fetches CloudWatch data every 8s via API Gateway. Live alarm states.</div>
+              <div class="anc-tags"><span class="anc-tag">HTML/JS</span><span class="anc-tag">Chart.js</span></div>
+            </div>
+            <div class="arch-node-card l4">
+              <div class="anc-title l4">Monitor Lab</div>
+              <div class="anc-desc">Manual experiment logging. Auto-calculates detection rate, latency.</div>
+              <div class="anc-tags"><span class="anc-tag">localStorage</span><span class="anc-tag">CSV/JSON</span></div>
+            </div>
+            <div class="arch-node-card l4">
+              <div class="anc-title l4">Gemini AI Analysis</div>
+              <div class="anc-desc">Live AWS metrics + experiment data. Thesis-worthy insights.</div>
+              <div class="anc-tags"><span class="anc-tag">Gemini 2.0</span><span class="anc-tag">Flash</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl mb20">Project flow — 5 phases</div>
+    <div class="flow-steps mb24">
+      <div class="fs"><div class="fs-num">1</div><div class="fs-title">Lab Setup</div><div class="fs-desc">5 IoT Things in AWS IoT Core, TLS certificates, MQTT broker, GuardDuty + CloudWatch configured</div></div>
+      <div class="fs"><div class="fs-num">2</div><div class="fs-title">Baseline Traffic</div><div class="fs-desc">Python simulator + phone sensors publish real IoT data to establish normal traffic baseline</div></div>
+      <div class="fs"><div class="fs-num">3</div><div class="fs-title">Attack Execution</div><div class="fs-desc">5 attack types run 3× each: fast, slow stealth, borderline — all logged with precise timestamps</div></div>
+      <div class="fs"><div class="fs-num">4</div><div class="fs-title">Measurement</div><div class="fs-desc">Detection rate, false positive rate, alert latency recorded per tool (GuardDuty, CloudWatch, Lambda)</div></div>
+      <div class="fs"><div class="fs-num">5</div><div class="fs-title">Analysis</div><div class="fs-desc">Blind spots identified, Gemini AI provides thesis-worthy insights, results table auto-populated</div></div>
+    </div>
+
+    <div class="sl mb20">Threat model — 5 attack scenarios</div>
+    <div class="tm-grid mb24">
+      <div class="tm-card"><div class="tm-icon">🔐</div><div class="tm-atk">Brute Force</div><div class="tm-tool">paho-mqtt · 200 attempts</div><div class="tm-badges"><span class="tm-b detect">CloudWatch ✓</span><span class="tm-b detect">GuardDuty ✓</span><span class="tm-b miss">Stealth: missed</span></div></div>
+      <div class="tm-card"><div class="tm-icon">🔍</div><div class="tm-atk">Port Scan</div><div class="tm-tool">Nmap -sS T4/T1</div><div class="tm-badges"><span class="tm-b detect">GuardDuty ✓ (T4)</span><span class="tm-b miss">GuardDuty ✗ (T1)</span><span class="tm-b miss">CloudWatch ✗</span></div></div>
+      <div class="tm-card"><div class="tm-icon">📤</div><div class="tm-atk">Data Exfiltration</div><div class="tm-tool">300 large payloads</div><div class="tm-badges"><span class="tm-b detect">CloudWatch ✓</span><span class="tm-b miss">GuardDuty ✗</span><span class="tm-b miss">IoT-only traffic</span></div></div>
+      <div class="tm-card"><div class="tm-icon">👾</div><div class="tm-atk">Rogue Device</div><div class="tm-tool">Uncertified device join</div><div class="tm-badges"><span class="tm-b miss">GuardDuty ✗</span><span class="tm-b miss">CloudWatch ✗</span><span class="tm-b detect">Lambda ✓ (whitelist)</span></div></div>
+      <div class="tm-card"><div class="tm-icon">💥</div><div class="tm-atk">DDoS Flood</div><div class="tm-tool">500 rapid messages</div><div class="tm-badges"><span class="tm-b detect">CloudWatch ✓</span><span class="tm-b detect">GuardDuty ✓</span><span class="tm-b miss">Slow version: missed</span></div></div>
+    </div>
+
+    <div class="sl mb20">Technology stack</div>
+    <div class="tech-stack">
+      <div class="ts-card">
+        <div class="ts-label">AWS Services</div>
+        <div class="ts-items">
+          <div class="ts-item">IoT Core (MQTT broker)</div>
+          <div class="ts-item">GuardDuty (ML threat detection)</div>
+          <div class="ts-item">CloudWatch (metrics + alarms)</div>
+          <div class="ts-item">Lambda (custom detection)</div>
+          <div class="ts-item">API Gateway (REST API)</div>
+          <div class="ts-item">VPC Flow Logs</div>
+          <div class="ts-item">SNS (notifications)</div>
+        </div>
+      </div>
+      <div class="ts-card">
+        <div class="ts-label">Attack Tools</div>
+        <div class="ts-items">
+          <div class="ts-item">Python + paho-mqtt</div>
+          <div class="ts-item">AWSIoTPythonSDK</div>
+          <div class="ts-item">Nmap (port scanning)</div>
+          <div class="ts-item">boto3 (AWS SDK)</div>
+          <div class="ts-item">Mac SMC (pmset sensor)</div>
+          <div class="ts-item">IoT MQTT Panel (phone)</div>
+        </div>
+      </div>
+      <div class="ts-card">
+        <div class="ts-label">Dashboard Stack</div>
+        <div class="ts-items">
+          <div class="ts-item">HTML5 + CSS3 + JS</div>
+          <div class="ts-item">Chart.js (visualisations)</div>
+          <div class="ts-item">Gemini 2.0 Flash (AI)</div>
+          <div class="ts-item">localStorage (experiment data)</div>
+          <div class="ts-item">AWS API Gateway (live data)</div>
+        </div>
+      </div>
+      <div class="ts-card">
+        <div class="ts-label">Research Output</div>
+        <div class="ts-items">
+          <div class="ts-item">Detection rate per attack</div>
+          <div class="ts-item">Alert latency (seconds)</div>
+          <div class="ts-item">False positive analysis</div>
+          <div class="ts-item">Blind spot identification</div>
+          <div class="ts-item">Tool comparison table</div>
+          <div class="ts-item">Thesis Chapter 4 + 5 data</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAGE: PROJECT FLOW ═══════════ -->
+  <div class="page" id="page-projectflow">
+    <div class="sl mb20">Project Flowchart — Full Research Pipeline</div>
+    <div class="pf-container">
+      <svg width="100%" viewBox="0 0 900 2200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#00c9a7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+          <marker id="arr-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#72cc96" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+          <marker id="arr-r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#e07258" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+          <marker id="arr-o" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#e0ad64" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+        </defs>
+        <!-- TITLE -->
+        <rect x="200" y="20" width="500" height="64" rx="10" fill="#0d1420" stroke="#00c9a7" stroke-width="1"/>
+        <text x="450" y="46" text-anchor="middle" font-size="13" font-weight="bold" fill="#00c9a7" font-family="'JetBrains Mono',monospace">REAL-TIME ANOMALY DETECTION IN SMART HOMES</text>
+        <text x="450" y="68" text-anchor="middle" font-size="11" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Complete Project Flowchart — MacBook + Android → AWS</text>
+        <line x1="450" y1="84" x2="450" y2="108" stroke="#00c9a7" stroke-width="1.5" marker-end="url(#arr)"/>
+        <!-- PHASE 1 -->
+        <rect x="20" y="112" width="860" height="26" rx="6" fill="#0d2540"/>
+        <text x="450" y="130" text-anchor="middle" font-size="11" font-weight="bold" fill="#00c9a7" letter-spacing="2" font-family="'JetBrains Mono',monospace">PHASE 1 — BUILD THE LAB</text>
+        <rect x="300" y="152" width="300" height="54" rx="8" fill="#0d1420" stroke="#00c9a7" stroke-width="0.8"/>
+        <text x="450" y="174" text-anchor="middle" font-size="12" font-weight="bold" fill="#00c9a7" font-family="'JetBrains Mono',monospace">Step 1 — AWS Account Setup</text>
+        <text x="450" y="192" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Region: us-east-1 · Access keys · Endpoint saved</text>
+        <line x1="450" y1="206" x2="450" y2="226" stroke="#00c9a7" stroke-width="1.5" marker-end="url(#arr)"/>
+        <rect x="250" y="230" width="400" height="64" rx="8" fill="#0d1420" stroke="#00c9a7" stroke-width="0.8"/>
+        <text x="450" y="252" text-anchor="middle" font-size="12" font-weight="bold" fill="#00c9a7" font-family="'JetBrains Mono',monospace">Step 2 — AWS IoT Core</text>
+        <text x="450" y="270" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">5 Things created · SmartHomeIoTPolicy · 20 certs downloaded</text>
+        <text x="450" y="285" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Lock · Camera · TV · Bulb · Sensor</text>
+        <line x1="450" y1="294" x2="450" y2="314" stroke="#00c9a7" stroke-width="1.5" marker-end="url(#arr)"/>
+        <rect x="80" y="318" width="740" height="80" rx="8" fill="#080c14" stroke="#182134" stroke-width="0.5"/>
+        <text x="450" y="338" text-anchor="middle" font-size="11" font-weight="bold" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Step 3 — Real Devices Connected</text>
+        <rect x="100" y="346" width="220" height="40" rx="6" fill="#0d1420" stroke="#00c9a7" stroke-width="0.6"/>
+        <text x="210" y="362" text-anchor="middle" font-size="11" font-weight="bold" fill="#00c9a7" font-family="'JetBrains Mono',monospace">MacBook</text>
+        <text x="210" y="378" text-anchor="middle" font-size="9.5" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">MQTT Explorer · Python scripts · Lock + Camera + TV</text>
+        <rect x="340" y="346" width="220" height="40" rx="6" fill="#0d1420" stroke="#72cc96" stroke-width="0.6"/>
+        <text x="450" y="362" text-anchor="middle" font-size="11" font-weight="bold" fill="#72cc96" font-family="'JetBrains Mono',monospace">Android Phone</text>
+        <text x="450" y="378" text-anchor="middle" font-size="9.5" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">IoT MQTT Panel · Sensor + Rogue device</text>
+        <rect x="580" y="346" width="220" height="40" rx="6" fill="#0d1420" stroke="#a890f5" stroke-width="0.6"/>
+        <text x="690" y="362" text-anchor="middle" font-size="11" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">MQTT Explorer</text>
+        <text x="690" y="378" text-anchor="middle" font-size="9.5" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Manual testing · Message verified in AWS</text>
+        <line x1="450" y1="398" x2="450" y2="418" stroke="#00c9a7" stroke-width="1.5" marker-end="url(#arr)"/>
+        <rect x="80" y="422" width="740" height="96" rx="8" fill="#080c14" stroke="#182134" stroke-width="0.5"/>
+        <text x="450" y="442" text-anchor="middle" font-size="11" font-weight="bold" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Step 4 — Security Monitoring Enabled</text>
+        <rect x="100" y="450" width="156" height="54" rx="6" fill="#1a0010" stroke="#e07258" stroke-width="0.6"/>
+        <text x="178" y="470" text-anchor="middle" font-size="11" font-weight="bold" fill="#e07258" font-family="'JetBrains Mono',monospace">GuardDuty</text>
+        <text x="178" y="486" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Threat intelligence</text>
+        <text x="178" y="498" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">24h baseline build</text>
+        <rect x="272" y="450" width="156" height="54" rx="6" fill="#1a0e00" stroke="#e0ad64" stroke-width="0.6"/>
+        <text x="350" y="470" text-anchor="middle" font-size="11" font-weight="bold" fill="#e0ad64" font-family="'JetBrains Mono',monospace">CloudWatch</text>
+        <text x="350" y="486" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">5 alarms created</text>
+        <text x="350" y="498" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">AWSIotLogsV2</text>
+        <rect x="444" y="450" width="156" height="54" rx="6" fill="#0a1a2a" stroke="#00c9a7" stroke-width="0.6"/>
+        <text x="522" y="470" text-anchor="middle" font-size="11" font-weight="bold" fill="#00c9a7" font-family="'JetBrains Mono',monospace">VPC Flow Logs</text>
+        <text x="522" y="486" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Network traffic</text>
+        <text x="522" y="498" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">/vpc/flowlogs/smarthome</text>
+        <rect x="616" y="450" width="100" height="54" rx="6" fill="#100a2a" stroke="#a890f5" stroke-width="0.6"/>
+        <text x="666" y="470" text-anchor="middle" font-size="11" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">Lambda</text>
+        <text x="666" y="486" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">RogueDetector</text>
+        <text x="666" y="498" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Auto-response</text>
+        <rect x="732" y="450" width="78" height="54" rx="6" fill="#0a1a10" stroke="#72cc96" stroke-width="0.6"/>
+        <text x="771" y="470" text-anchor="middle" font-size="11" font-weight="bold" fill="#72cc96" font-family="'JetBrains Mono',monospace">SNS</text>
+        <text x="771" y="486" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Email alerts</text>
+        <text x="771" y="498" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Confirmed</text>
+        <line x1="450" y1="518" x2="450" y2="538" stroke="#00c9a7" stroke-width="1.5" marker-end="url(#arr)"/>
+        <rect x="300" y="542" width="300" height="44" rx="8" fill="#0a2a10" stroke="#72cc96" stroke-width="0.8"/>
+        <text x="450" y="560" text-anchor="middle" font-size="12" font-weight="bold" fill="#72cc96" font-family="'JetBrains Mono',monospace">Step 5 — Verified End-to-End</text>
+        <text x="450" y="576" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">MQTT messages in AWS test client · CloudWatch receiving logs</text>
+        <line x1="450" y1="586" x2="450" y2="606" stroke="#72cc96" stroke-width="2" marker-end="url(#arr-g)"/>
+        <rect x="310" y="610" width="280" height="26" rx="13" fill="#72cc96"/>
+        <text x="450" y="628" text-anchor="middle" font-size="11" font-weight="bold" fill="#080c14" font-family="'JetBrains Mono',monospace">PHASE 1 COMPLETE ✓</text>
+        <line x1="450" y1="636" x2="450" y2="656" stroke="#72cc96" stroke-width="2" marker-end="url(#arr-g)"/>
+        <!-- PHASE 2 -->
+        <rect x="20" y="660" width="860" height="26" rx="6" fill="#1a0010"/>
+        <text x="450" y="678" text-anchor="middle" font-size="11" font-weight="bold" fill="#e07258" letter-spacing="2" font-family="'JetBrains Mono',monospace">PHASE 2 — EXECUTE ATTACKS</text>
+        <rect x="80" y="700" width="740" height="720" rx="8" fill="#080c14" stroke="#182134" stroke-width="0.5"/>
+        <rect x="100" y="716" width="340" height="100" rx="8" fill="#1a0008" stroke="#e07258" stroke-width="0.8"/>
+        <text x="270" y="736" text-anchor="middle" font-size="12" font-weight="bold" fill="#e07258" font-family="'JetBrains Mono',monospace">Attack 1 — Brute Force</text>
+        <text x="270" y="754" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Target: Smart Lock · Tool: paho-mqtt 200 attempts</text>
+        <text x="270" y="770" text-anchor="middle" font-size="10" fill="#72cc96" font-family="'JetBrains Mono',monospace">Detection: CloudWatch (threshold 10/min) · GuardDuty</text>
+        <text x="270" y="786" text-anchor="middle" font-size="10" fill="#e07258" font-family="'JetBrains Mono',monospace">Stealth mode: MISSED by both tools</text>
+        <text x="270" y="802" text-anchor="middle" font-size="9" fill="#3d5070" font-family="'JetBrains Mono',monospace">Run 3× · Fast · Slow · Borderline</text>
+        <rect x="460" y="716" width="340" height="100" rx="8" fill="#0a0a20" stroke="#7aaee8" stroke-width="0.8"/>
+        <text x="630" y="736" text-anchor="middle" font-size="12" font-weight="bold" fill="#7aaee8" font-family="'JetBrains Mono',monospace">Attack 2 — Port Scan</text>
+        <text x="630" y="754" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Target: All devices · Tool: Nmap -sS T4/T1</text>
+        <text x="630" y="770" text-anchor="middle" font-size="10" fill="#72cc96" font-family="'JetBrains Mono',monospace">Detection: GuardDuty (T4 aggressive)</text>
+        <text x="630" y="786" text-anchor="middle" font-size="10" fill="#e07258" font-family="'JetBrains Mono',monospace">T1 stealth: NOT detected</text>
+        <text x="630" y="802" text-anchor="middle" font-size="9" fill="#3d5070" font-family="'JetBrains Mono',monospace">VPC Flow Logs required</text>
+        <rect x="100" y="832" width="340" height="100" rx="8" fill="#1a1000" stroke="#e0ad64" stroke-width="0.8"/>
+        <text x="270" y="852" text-anchor="middle" font-size="12" font-weight="bold" fill="#e0ad64" font-family="'JetBrains Mono',monospace">Attack 3 — Data Exfiltration</text>
+        <text x="270" y="870" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Target: IP Camera · Tool: 300 large MQTT payloads</text>
+        <text x="270" y="886" text-anchor="middle" font-size="10" fill="#72cc96" font-family="'JetBrains Mono',monospace">Detection: CloudWatch (byte spike alarm)</text>
+        <text x="270" y="902" text-anchor="middle" font-size="10" fill="#e07258" font-family="'JetBrains Mono',monospace">GuardDuty: BLIND SPOT (IoT only)</text>
+        <text x="270" y="918" text-anchor="middle" font-size="9" fill="#3d5070" font-family="'JetBrains Mono',monospace">Exfiltration stays within IoT Core layer</text>
+        <rect x="460" y="832" width="340" height="100" rx="8" fill="#0a1a10" stroke="#72cc96" stroke-width="0.8"/>
+        <text x="630" y="852" text-anchor="middle" font-size="12" font-weight="bold" fill="#72cc96" font-family="'JetBrains Mono',monospace">Attack 4 — Rogue Device</text>
+        <text x="630" y="870" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Target: Network · Tool: Uncertified MQTT join</text>
+        <text x="630" y="886" text-anchor="middle" font-size="10" fill="#72cc96" font-family="'JetBrains Mono',monospace">Detection: Lambda whitelist check</text>
+        <text x="630" y="902" text-anchor="middle" font-size="10" fill="#e07258" font-family="'JetBrains Mono',monospace">GuardDuty + CloudWatch: MISSED</text>
+        <text x="630" y="918" text-anchor="middle" font-size="9" fill="#3d5070" font-family="'JetBrains Mono',monospace">Rogue_Device_99 blocked at TLS layer</text>
+        <rect x="100" y="948" width="700" height="90" rx="8" fill="#100010" stroke="#a890f5" stroke-width="0.8"/>
+        <text x="450" y="968" text-anchor="middle" font-size="12" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">Attack 5 — DDoS Flood</text>
+        <text x="450" y="986" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Target: Smart TV → Smart Bulb · Tool: 500 rapid MQTT messages/min</text>
+        <text x="450" y="1002" text-anchor="middle" font-size="10" fill="#72cc96" font-family="'JetBrains Mono',monospace">Detection: CloudWatch (publish spike) · GuardDuty · Slow version: MISSED</text>
+        <text x="450" y="1018" text-anchor="middle" font-size="9" fill="#3d5070" font-family="'JetBrains Mono',monospace">Compromised bulb as DDoS bot · msg rate 83× baseline</text>
+        <rect x="100" y="1054" width="700" height="70" rx="8" fill="#0d1420" stroke="#00c9a7" stroke-width="0.6"/>
+        <text x="450" y="1074" text-anchor="middle" font-size="11" font-weight="bold" fill="#00c9a7" font-family="'JetBrains Mono',monospace">Measurement per run</text>
+        <text x="250" y="1092" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Detection rate per tool</text>
+        <text x="450" y="1092" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Alert latency (seconds)</text>
+        <text x="650" y="1092" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">False positives + blind spots</text>
+        <text x="450" y="1110" text-anchor="middle" font-size="9" fill="#3d5070" font-family="'JetBrains Mono',monospace">Start timestamp → Detection timestamp → Latency = Δt</text>
+        <rect x="100" y="1138" width="340" height="62" rx="8" fill="#0d1420" stroke="#e07258" stroke-width="0.6"/>
+        <text x="270" y="1158" text-anchor="middle" font-size="11" font-weight="bold" fill="#e07258" font-family="'JetBrains Mono',monospace">GuardDuty monitors</text>
+        <text x="270" y="1174" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">VPC Flow Logs · DNS queries · CloudTrail</text>
+        <text x="270" y="1188" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">ML findings: Recon:EC2/PortProbe</text>
+        <rect x="460" y="1138" width="340" height="62" rx="8" fill="#0d1420" stroke="#e0ad64" stroke-width="0.6"/>
+        <text x="630" y="1158" text-anchor="middle" font-size="11" font-weight="bold" fill="#e0ad64" font-family="'JetBrains Mono',monospace">CloudWatch monitors</text>
+        <text x="630" y="1174" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Metric filter → Alarm → SNS</text>
+        <text x="630" y="1188" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">BruteForce_Detection + DDoSDetectionAlarm</text>
+        <rect x="100" y="1218" width="700" height="54" rx="8" fill="#0d1420" stroke="#a890f5" stroke-width="0.6"/>
+        <text x="285" y="1240" text-anchor="middle" font-size="11" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">Lambda auto-response</text>
+        <text x="285" y="1256" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Rogue device whitelist check → SNS alert</text>
+        <text x="630" y="1240" text-anchor="middle" font-size="11" font-weight="bold" fill="#00c9a7" font-family="'JetBrains Mono',monospace">VPC Flow Logs capture all</text>
+        <text x="630" y="1256" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">All traffic · DDoSDetectionAlarm</text>
+        <line x1="450" y1="1420" x2="450" y2="1440" stroke="#72cc96" stroke-width="2" marker-end="url(#arr-g)"/>
+        <rect x="310" y="1444" width="280" height="26" rx="13" fill="#72cc96"/>
+        <text x="450" y="1462" text-anchor="middle" font-size="11" font-weight="bold" fill="#080c14" font-family="'JetBrains Mono',monospace">15 ATTACK RUNS COMPLETE ✓</text>
+        <line x1="450" y1="1470" x2="450" y2="1490" stroke="#72cc96" stroke-width="2" marker-end="url(#arr-g)"/>
+        <!-- PHASE 3 -->
+        <rect x="20" y="1494" width="860" height="26" rx="6" fill="#0a2a10"/>
+        <text x="450" y="1512" text-anchor="middle" font-size="11" font-weight="bold" fill="#72cc96" letter-spacing="2" font-family="'JetBrains Mono',monospace">PHASE 3 — MEASURE AND ANALYSE</text>
+        <rect x="80" y="1530" width="740" height="96" rx="8" fill="#080c14" stroke="#182134" stroke-width="0.5"/>
+        <rect x="100" y="1546" width="156" height="62" rx="6" fill="#0a2a10" stroke="#72cc96" stroke-width="0.6"/>
+        <text x="178" y="1568" text-anchor="middle" font-size="11" font-weight="bold" fill="#72cc96" font-family="'JetBrains Mono',monospace">Results Table</text>
+        <text x="178" y="1584" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Average 3 runs</text>
+        <text x="178" y="1598" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">per attack</text>
+        <rect x="272" y="1546" width="156" height="62" rx="6" fill="#0a2a10" stroke="#72cc96" stroke-width="0.6"/>
+        <text x="350" y="1568" text-anchor="middle" font-size="11" font-weight="bold" fill="#72cc96" font-family="'JetBrains Mono',monospace">Detection Rate</text>
+        <text x="350" y="1584" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">% caught per tool</text>
+        <text x="350" y="1598" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">GuardDuty vs CW</text>
+        <rect x="444" y="1546" width="156" height="62" rx="6" fill="#0a2a10" stroke="#72cc96" stroke-width="0.6"/>
+        <text x="522" y="1568" text-anchor="middle" font-size="11" font-weight="bold" fill="#72cc96" font-family="'JetBrains Mono',monospace">Latency Avg</text>
+        <text x="522" y="1584" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Seconds start→alert</text>
+        <text x="522" y="1598" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">per attack type</text>
+        <rect x="616" y="1546" width="184" height="62" rx="6" fill="#0a2a10" stroke="#72cc96" stroke-width="0.6"/>
+        <text x="708" y="1568" text-anchor="middle" font-size="11" font-weight="bold" fill="#72cc96" font-family="'JetBrains Mono',monospace">Blind Spots</text>
+        <text x="708" y="1584" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">What was missed</text>
+        <text x="708" y="1598" text-anchor="middle" font-size="9" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Technical WHY</text>
+        <line x1="450" y1="1626" x2="450" y2="1646" stroke="#72cc96" stroke-width="1.5" marker-end="url(#arr-g)"/>
+        <rect x="200" y="1650" width="500" height="54" rx="8" fill="#0d1420" stroke="#00c9a7" stroke-width="0.8"/>
+        <text x="450" y="1672" text-anchor="middle" font-size="12" font-weight="bold" fill="#00c9a7" font-family="'JetBrains Mono',monospace">Security Dashboard (this app)</text>
+        <text x="450" y="1688" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Log all runs · Auto results table · Export JSON/CSV</text>
+        <line x1="450" y1="1704" x2="450" y2="1724" stroke="#72cc96" stroke-width="1.5" marker-end="url(#arr-g)"/>
+        <!-- PHASE 4 -->
+        <rect x="20" y="1728" width="860" height="26" rx="6" fill="#1a1060"/>
+        <text x="450" y="1746" text-anchor="middle" font-size="11" font-weight="bold" fill="#a890f5" letter-spacing="2" font-family="'JetBrains Mono',monospace">PHASE 4 — WRITE UP AND PRESENT</text>
+        <rect x="80" y="1764" width="740" height="72" rx="8" fill="#080c14" stroke="#182134" stroke-width="0.5"/>
+        <rect x="100" y="1778" width="100" height="44" rx="5" fill="#100a20" stroke="#a890f5" stroke-width="0.5"/>
+        <text x="150" y="1798" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">Chapter 1</text>
+        <text x="150" y="1814" text-anchor="middle" font-size="8.5" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Introduction</text>
+        <rect x="212" y="1778" width="100" height="44" rx="5" fill="#100a20" stroke="#a890f5" stroke-width="0.5"/>
+        <text x="262" y="1798" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">Chapter 2</text>
+        <text x="262" y="1814" text-anchor="middle" font-size="8.5" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Lit Review</text>
+        <rect x="324" y="1778" width="100" height="44" rx="5" fill="#100a20" stroke="#a890f5" stroke-width="0.5"/>
+        <text x="374" y="1798" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">Chapter 3</text>
+        <text x="374" y="1814" text-anchor="middle" font-size="8.5" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">System Design</text>
+        <rect x="436" y="1778" width="100" height="44" rx="5" fill="#100a20" stroke="#a890f5" stroke-width="0.5"/>
+        <text x="486" y="1798" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">Chapter 4</text>
+        <text x="486" y="1814" text-anchor="middle" font-size="8.5" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Implementation</text>
+        <rect x="548" y="1778" width="100" height="44" rx="5" fill="#100a20" stroke="#a890f5" stroke-width="0.5"/>
+        <text x="598" y="1798" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">Chapter 5</text>
+        <text x="598" y="1814" text-anchor="middle" font-size="8.5" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Results</text>
+        <rect x="660" y="1778" width="100" height="44" rx="5" fill="#100a20" stroke="#a890f5" stroke-width="0.5"/>
+        <text x="710" y="1798" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">Chapter 6</text>
+        <text x="710" y="1814" text-anchor="middle" font-size="8.5" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Conclusion</text>
+        <line x1="450" y1="1836" x2="450" y2="1856" stroke="#a890f5" stroke-width="1.5" marker-end="url(#arr)"/>
+        <rect x="200" y="1860" width="500" height="54" rx="8" fill="#100a20" stroke="#a890f5" stroke-width="0.8"/>
+        <text x="450" y="1882" text-anchor="middle" font-size="12" font-weight="bold" fill="#a890f5" font-family="'JetBrains Mono',monospace">10-Minute Live Demo</text>
+        <text x="450" y="1898" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Dashboard → Trigger attack live → GuardDuty fires → Results</text>
+        <line x1="450" y1="1914" x2="450" y2="1934" stroke="#72cc96" stroke-width="2" marker-end="url(#arr-g)"/>
+        <rect x="250" y="1938" width="400" height="60" rx="10" fill="#0a2a10" stroke="#72cc96" stroke-width="1.5"/>
+        <text x="450" y="1964" text-anchor="middle" font-size="14" font-weight="bold" fill="#72cc96" font-family="'JetBrains Mono',monospace">PROJECT COMPLETE</text>
+        <text x="450" y="1984" text-anchor="middle" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Thesis submitted · Original findings · Publishable research</text>
+        <!-- Legend -->
+        <rect x="20" y="2030" width="860" height="120" rx="8" fill="#0d1420" stroke="#182134" stroke-width="0.5"/>
+        <text x="450" y="2052" text-anchor="middle" font-size="11" font-weight="bold" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">LEGEND</text>
+        <rect x="50" y="2066" width="14" height="14" rx="2" fill="#e07258"/>
+        <text x="72" y="2078" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Attack 1 — Brute Force (Smart Lock)</text>
+        <rect x="300" y="2066" width="14" height="14" rx="2" fill="#e0ad64"/>
+        <text x="322" y="2078" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Attack 2 — Port Scan (All devices)</text>
+        <rect x="550" y="2066" width="14" height="14" rx="2" fill="#e0ad64"/>
+        <text x="572" y="2078" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Attack 3 — Data Exfiltration (Camera)</text>
+        <rect x="50" y="2100" width="14" height="14" rx="2" fill="#a890f5"/>
+        <text x="72" y="2112" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Attack 4 — Rogue Device (Android Phone)</text>
+        <rect x="300" y="2100" width="14" height="14" rx="2" fill="#00c9a7"/>
+        <text x="322" y="2112" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Attack 5 — DDoS Flood (Smart TV)</text>
+        <rect x="550" y="2100" width="14" height="14" rx="2" fill="#72cc96"/>
+        <text x="572" y="2112" font-size="10" fill="#7a8fa8" font-family="'JetBrains Mono',monospace">Phase completion checkpoints</text>
+        <text x="450" y="2142" text-anchor="middle" font-size="10" fill="#3d5070" font-family="'JetBrains Mono',monospace">Each attack run 3 times · Data recorded in JSON + dashboard · Screenshots taken after every detection</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAGE: GEMINI AI ═══════════ -->
+  <div class="page" id="page-gemini">
+    <div class="ai-strip">
+      <div class="ai-logo">✦</div>
+      <div>
+        <div class="ai-cfg-label">Gemini AI — Security Analyst</div>
+        <div class="ai-cfg-sub">Analyses your live AWS data + experiment logs. Provides thesis-quality insights.</div>
+      </div>
+      <div class="ai-key-wrap">
+        <input class="ai-key-input" type="password" id="gemini-key" placeholder="Enter Gemini API key (AIzaSy...)">
+        <button class="btn btn-g btn-sm" onclick="saveGeminiKey()">Save key</button>
+      </div>
+      <div class="ai-st unset" id="ai-status">No key set</div>
+    </div>
+
+    <div class="sl mb20">Quick analysis prompts</div>
+    <div class="qbtns">
+      <div class="qbtn" onclick="quickPrompt('why_missed')">Why did tools miss attacks?</div>
+      <div class="qbtn" onclick="quickPrompt('brute_force')">Explain brute force detection</div>
+      <div class="qbtn" onclick="quickPrompt('guardduty_vs_cw')">GuardDuty vs CloudWatch</div>
+      <div class="qbtn" onclick="quickPrompt('improve')">How to improve detection?</div>
+      <div class="qbtn" onclick="quickPrompt('stealth')">Why slow scans evade detection?</div>
+      <div class="qbtn" onclick="quickPrompt('summary')">Summarise my results</div>
+      <div class="qbtn" onclick="quickPrompt('live_aws')" style="border-color:var(--tl);color:var(--tl)">✦ Analyse live AWS data now</div>
+    </div>
+
+    <div class="ectrls">
+      <div class="fg">
+        <label class="fl">Attack type</label>
+        <select id="ai-atk">
+          <option value="all">All attacks (summary)</option>
+          <option>Brute Force</option>
+          <option>Port Scan</option>
+          <option>Data Exfiltration</option>
+          <option>Rogue Device</option>
+          <option>DDoS Flood</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Focus area</label>
+        <select id="ai-focus">
+          <option value="why_missed">Why tools missed it</option>
+          <option value="why_detected">Why tools detected it</option>
+          <option value="improve">How to improve</option>
+          <option value="thesis">Thesis-worthy insights</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Custom question</label>
+        <input type="text" id="ai-question" placeholder="e.g. What threshold should I set?">
+      </div>
+      <button class="btn btn-p" onclick="runGemini()">✦ Analyse</button>
+    </div>
+
+    <div class="ai-ra">
+      <div class="ai-rh">
+        <div class="ct">Analysis output</div>
+        <div class="ai-rb-badge">✦ Gemini 2.0 Flash</div>
+      </div>
+      <div class="ai-body" id="ai-output">
+        <div class="ai-ph">
+          <div class="ai-phi">✦</div>
+          <div>Select a prompt above or click Analyse</div>
+          <div style="opacity:.4">Live AWS data + experiment logs are automatically included as context</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /pw -->
+</div><!-- /main -->
+
+<div id="toast-root"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  DATA LAYER
+// ═══════════════════════════════════════════════
+const SK = 'smartshield_v4';
+let runs = [];
+try { runs = JSON.parse(localStorage.getItem(SK)) || []; } catch(e) { runs = []; }
+function save() {
+  try { localStorage.setItem(SK, JSON.stringify(runs)); } catch(e) {}
+}
+
+const ATTACKS = ['Brute Force','Port Scan','Data Exfiltration','Rogue Device','DDoS Flood'];
+const ATK_CLR = {
+  'Brute Force':'c-bf','Port Scan':'c-ps',
+  'Data Exfiltration':'c-de','Rogue Device':'c-rd','DDoS Flood':'c-dd'
+};
+const DEV_KEY = {
+  'Smart Lock':'smart_lock','IP Camera':'ip_camera',
+  'Smart TV':'smart_tv','Smart Bulb':'smart_bulb','Motion Sensor':'motion_sensor'
+};
+
+// ═══════════════════════════════════════════════
+//  CLOCK
+// ═══════════════════════════════════════════════
+function tick() {
+  const n = new Date();
+  const p = x => String(x).padStart(2,'0');
+  const dateStr = `${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()}, ${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  const timeStr = `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  const e1 = document.getElementById('top-clock'); if (e1) e1.textContent = dateStr;
+  const e2 = document.getElementById('sb-clock'); if (e2) e2.textContent = timeStr;
+}
+tick();
+setInterval(tick, 1000);
+
+// ═══════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════
+const PM = {
+  monitor:      { title:'Monitor Lab',          sub:'REAL-TIME ATTACK LOGGING & RESULTS' },
+  cloudwatch:   { title:'CloudWatch Graphs',    sub:'AWS METRICS & LIVE THREAT DETECTION' },
+  architecture: { title:'System Architecture',  sub:'4-LAYER AWS IOT SECURITY DESIGN' },
+  projectflow:  { title:'Project Flow',         sub:'COMPLETE RESEARCH PIPELINE FLOWCHART' },
+  gemini:       { title:'Gemini AI Analysis',   sub:'AI-POWERED SECURITY INSIGHTS' }
+};
+
+function sp(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  document.querySelectorAll('.nav').forEach(n => n.classList.remove('on'));
+  el.classList.add('on');
+  const m = PM[id] || { title: id, sub: '' };
+  const titleEl = document.getElementById('tb-title');
+  const subEl = document.getElementById('tb-sub');
+  if (titleEl) titleEl.textContent = m.title;
+  if (subEl) subEl.textContent = m.sub;
+  if (id === 'cloudwatch' && apiUrl) setTimeout(fetchLiveData, 120);
+}
+
+// ═══════════════════════════════════════════════
+//  THEME TOGGLE
+// ═══════════════════════════════════════════════
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  const lbl = document.getElementById('theme-lbl');
+  if (lbl) lbl.textContent = isDark ? 'Light mode' : 'Dark mode';
+  if (liveData) setTimeout(() => { destroyCharts(); renderCharts(liveData); }, 80);
+}
+
+// ═══════════════════════════════════════════════
+//  LOG RUN
+// ═══════════════════════════════════════════════
+function logRun() {
+  const getVal = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const lat = parseInt(getVal('f-lat'));
+  const r = {
+    id: Date.now(),
+    attack:  getVal('f-atk'),
+    run:     getVal('f-run'),
+    device:  getVal('f-dev'),
+    mode:    getVal('f-mode'),
+    gd:      getVal('f-gd'),
+    cw:      getVal('f-cw'),
+    lambda:  getVal('f-lam'),
+    latency: isNaN(lat) ? null : lat,
+    notes:   getVal('f-notes').trim(),
+    ts:      new Date().toLocaleTimeString('en-GB', { hour12: false })
+  };
+  runs.push(r);
+  save();
+
+  const dk = DEV_KEY[r.device];
+  if (dk) flashDevice(dk, r.attack);
+
+  const btn = document.getElementById('log-btn');
+  if (btn) {
+    btn.textContent = '✓ Logged!';
+    btn.style.background = 'var(--moss)';
+    setTimeout(() => { btn.textContent = '+ Log run'; btn.style.background = ''; }, 1400);
+  }
+
+  const latEl = document.getElementById('f-lat');
+  const notesEl = document.getElementById('f-notes');
+  if (latEl) latEl.value = '';
+  if (notesEl) notesEl.value = '';
+
+  renderAll();
+  toast('ok', `Logged: ${r.attack} — ${r.run}`);
+}
+
+function flashDevice(key, atk) {
+  const c  = document.getElementById('dev-' + key);
+  const b  = document.getElementById('dbg-' + key);
+  const s  = document.getElementById('dst-' + key);
+  if (!c) return;
+  c.classList.add('alerting');
+  if (b) b.textContent = 'ALERT';
+  if (s) s.textContent = 'Under attack: ' + atk;
+  setTimeout(() => {
+    c.classList.remove('alerting');
+    if (b) b.textContent = 'Online';
+    const defaults = {
+      smart_lock:'Normal traffic',ip_camera:'Streaming',
+      smart_tv:'Active',smart_bulb:'Normal',motion_sensor:'Monitoring'
+    };
+    if (s) s.textContent = defaults[key] || 'Online';
+  }, 8000);
+}
+
+// ═══════════════════════════════════════════════
+//  BADGES / HELPERS
+// ═══════════════════════════════════════════════
+function rb(v) {
+  const m = {
+    Detected:'b-detected', Missed:'b-missed', Partial:'b-partial',
+    'N/A':'b-na', Triggered:'b-trig', 'Not triggered':'b-ntrig'
+  };
+  return `<span class="badge ${m[v] || 'b-na'}">${v}</span>`;
+}
+function mb(v) {
+  return v.includes('Fast')
+    ? `<span class="badge b-fast">${v}</span>`
+    : `<span class="badge b-slow">${v}</span>`;
+}
+function ab(v) {
+  return `<span class="b-atk"><span class="atk-dot ${ATK_CLR[v] || ''}"></span>${v}</span>`;
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER LOG
+// ═══════════════════════════════════════════════
+function renderLog() {
+  const fa  = (document.getElementById('fi-atk') || {}).value || 'All';
+  const fr  = (document.getElementById('fi-res') || {}).value || 'All';
+  const filtered = runs.filter(r => {
+    if (fa !== 'All' && r.attack !== fa) return false;
+    if (fr !== 'All' && r.gd !== fr && r.cw !== fr) return false;
+    return true;
+  });
+
+  const countEl = document.getElementById('run-count');
+  if (countEl) countEl.textContent = `${runs.length} run${runs.length !== 1 ? 's' : ''}`;
+
+  const tb = document.getElementById('run-tbody');
+  if (!tb) return;
+  if (!filtered.length) {
+    tb.innerHTML = `<tr class="er"><td colspan="12">No runs logged yet</td></tr>`;
+    return;
+  }
+  tb.innerHTML = filtered.slice().reverse().map((r, i) => {
+    const lt  = r.latency !== null ? r.latency + 's' : '—';
+    const nt  = r.notes ? (r.notes.length > 45 ? r.notes.slice(0,45) + '…' : r.notes) : '—';
+    const num = filtered.length - i;
+    return `<tr>
+      <td class="mono" style="color:var(--t3)">${num}</td>
+      <td>${ab(r.attack)}</td>
+      <td class="mono">${r.run}</td>
+      <td>${mb(r.mode)}</td>
+      <td>${r.device}</td>
+      <td>${rb(r.gd)}</td>
+      <td>${rb(r.cw)}</td>
+      <td>${rb(r.lambda)}</td>
+      <td class="mono" style="color:${r.latency ? 'var(--tl)' : 'var(--t3)'}">${lt}</td>
+      <td class="ts">${r.ts}</td>
+      <td style="font-size:11px;color:var(--t2);max-width:180px" title="${escHtml(r.notes)}">${escHtml(nt)}</td>
+      <td><button class="btn-dx" onclick="delRun(${r.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function delRun(id) {
+  runs = runs.filter(r => r.id !== id);
+  save();
+  renderAll();
+  toast('inf', 'Run deleted');
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER RESULTS TABLE
+// ═══════════════════════════════════════════════
+function renderResults() {
+  const tb = document.getElementById('res-tbody');
+  if (!tb) return;
+  tb.innerHTML = ATTACKS.map(atk => {
+    const ar = runs.filter(r => r.attack === atk);
+    if (!ar.length) {
+      return `<tr><td>${ab(atk)}</td><td class="mono" style="color:var(--t3)">—</td><td colspan="6" style="color:var(--t3);font-size:11.5px">No runs yet</td></tr>`;
+    }
+    const tot  = ar.length;
+    const gdD  = ar.filter(r => r.gd === 'Detected').length;
+    const cwD  = ar.filter(r => r.cw === 'Detected').length;
+    const lD   = ar.filter(r => r.lambda === 'Triggered').length;
+    const anyD = ar.filter(r => r.gd === 'Detected' || r.cw === 'Detected' || r.lambda === 'Triggered').length;
+    const lats = ar.filter(r => r.latency !== null).map(r => r.latency);
+    const avgL = lats.length ? Math.round(lats.reduce((a,b) => a+b, 0) / lats.length) : null;
+    const dr   = Math.round((anyD / tot) * 100);
+    const fc   = dr >= 75 ? 'var(--moss)' : dr >= 40 ? 'var(--sand)' : 'var(--rust)';
+    let vrd, vcl;
+    if (tot < 3) { vrd = `${tot}/3 runs`; vcl = 'vrd-pend'; }
+    else if (dr === 100) { vrd = 'Fully detected'; vcl = 'vrd-good'; }
+    else if (dr >= 67) { vrd = 'Mostly detected'; vcl = 'vrd-good'; }
+    else if (dr >= 34) { vrd = 'Partial coverage'; vcl = 'vrd-partial'; }
+    else { vrd = 'Blind spot'; vcl = 'vrd-bad'; }
+    return `<tr>
+      <td>${ab(atk)}</td>
+      <td class="mono">${tot}</td>
+      <td>${rb(gdD > 0 ? 'Detected' : 'Missed')} <span style="font-size:9.5px;color:var(--t3)">${gdD}/${tot}</span></td>
+      <td>${rb(cwD > 0 ? 'Detected' : 'Missed')} <span style="font-size:9.5px;color:var(--t3)">${cwD}/${tot}</span></td>
+      <td>${rb(lD > 0 ? 'Triggered' : 'Not triggered')} <span style="font-size:9.5px;color:var(--t3)">${lD}/${tot}</span></td>
+      <td class="mono" style="color:var(--tl)">${avgL !== null ? avgL + 's' : '—'}</td>
+      <td>
+        <div class="dr-wrap">
+          <div class="dr-track"><div class="dr-fill" style="width:${dr}%;background:${fc}"></div></div>
+          <div class="dr-lbl" style="color:${fc}">${dr}%</div>
+        </div>
+      </td>
+      <td class="${vcl}">${vrd}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER STATS
+// ═══════════════════════════════════════════════
+function renderStats() {
+  const tot  = runs.length;
+  const det  = runs.filter(r => r.gd === 'Detected' || r.cw === 'Detected' || r.lambda === 'Triggered').length;
+  const mis  = runs.filter(r => r.gd === 'Missed' && r.cw === 'Missed').length;
+  const lats = runs.filter(r => r.latency !== null).map(r => r.latency);
+  const avg  = lats.length ? Math.round(lats.reduce((a,b) => a+b, 0) / lats.length) : null;
+  const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setTxt('s-attacks', tot);
+  setTxt('s-detected', det);
+  setTxt('s-missed', mis);
+  setTxt('s-latency', avg || '—');
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER PHASE 2
+// ═══════════════════════════════════════════════
+function renderPhase2() {
+  const list = document.getElementById('phase2-list');
+  if (!list) return;
+  let done = 0;
+  list.innerHTML = ATTACKS.map(atk => {
+    const cnt = Math.min(new Set(runs.filter(r => r.attack === atk).map(r => r.run)).size, 3);
+    done += cnt;
+    const dots = Array.from({length:3}, (_,i) => `<div class="ap-dot ${i < cnt ? 'done' : ''}"></div>`).join('');
+    return `<div class="atk-prog-item">
+      <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--t2)">
+        <span class="atk-dot ${ATK_CLR[atk] || ''}"></span>${atk}
+      </div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <div class="ap-dots">${dots}</div>
+        <div class="ap-cnt">${cnt}/3</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const pct = Math.round((done / 15) * 100);
+  const fill = document.getElementById('p2-fill');
+  const doneEl = document.getElementById('p2-done');
+  const pctEl = document.getElementById('p2-pct');
+  const subEl = document.getElementById('p2-sub');
+  if (fill) fill.style.width = pct + '%';
+  if (doneEl) doneEl.textContent = done + ' runs done';
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (subEl) subEl.textContent = `${done} / 15 runs complete`;
+}
+
+function renderAll() {
+  renderStats();
+  renderLog();
+  renderResults();
+  renderPhase2();
+}
+
+// ═══════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════
+function exportJSON() {
+  const b = new Blob([JSON.stringify({ exported: new Date().toISOString(), runs }, null, 2)], { type: 'application/json' });
+  dl(b, `smartshield_${today()}.json`);
+  toast('ok', 'JSON exported');
+}
+
+function exportCSV() {
+  const h = ['#','Attack','Run','Mode','Device','GuardDuty','CloudWatch','Lambda','Latency','Time','Notes'];
+  const rows = runs.map((r,i) => [
+    i+1, r.attack, r.run, r.mode, r.device, r.gd, r.cw, r.lambda,
+    r.latency ?? '', r.ts, `"${(r.notes||'').replace(/"/g,'""')}"`
+  ]);
+  const b = new Blob([[h, ...rows].map(r => r.join(',')).join('\n')], { type: 'text/csv' });
+  dl(b, `smartshield_${today()}.csv`);
+  toast('ok', 'CSV exported');
+}
+
+function dl(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function today() { return new Date().toISOString().slice(0,10); }
+
+function clearAll() {
+  if (confirm('Delete all logged runs? This cannot be undone.')) {
+    runs = [];
+    save();
+    renderAll();
+    toast('inf', 'Data cleared');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  CLOUDWATCH / API
+// ═══════════════════════════════════════════════
+const API_SK = 'smartshield_api_v4';
+let apiUrl = '';
+let charts = {};
+let liveTimer = null;
+let liveData = null;
+let demoState = { brute:false, ddos:false, exfil:false, rogue:false, portscan:false };
+
+// Load saved API URL
+try {
+  apiUrl = localStorage.getItem(API_SK) || '';
+  if (apiUrl) {
+    const el = document.getElementById('api-url');
+    if (el) el.value = apiUrl;
+  }
+} catch(e) {}
+
+function saveApiUrl() {
+  const el = document.getElementById('api-url');
+  apiUrl = el ? el.value.trim() : '';
+  if (!apiUrl) { toast('err','Paste your API Gateway URL first'); return; }
+  try { localStorage.setItem(API_SK, apiUrl); } catch(e) {}
+  toast('ok','URL saved — connecting…');
+  fetchLiveData();
+}
+
+function CC() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  return {
+    grid: dark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)',
+    text: dark ? '#3d5070' : '#8fa4bc',
+    teal:'#00c9a7', tealA:'rgba(0,201,167,.12)',
+    rust:'#c45a3e', rustA:'rgba(196,90,62,.12)',
+    slate:'#5588c8', slateA:'rgba(85,136,200,.12)',
+    sand:'#c4914a', sandA:'rgba(196,145,74,.12)',
+    moss:'#58a87a', mossA:'rgba(88,168,122,.12)'
+  };
+}
+
+function chartCfg() {
+  const c = CC();
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 2.6,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#080c14', titleColor: c.text, bodyColor: c.text,
+        borderColor: 'rgba(255,255,255,.07)', borderWidth: 1
+      }
+    },
+    scales: {
+      x: { ticks: { color: c.text, font: { size:9.5, family:'JetBrains Mono' }, maxTicksLimit:7 }, grid: { color: c.grid }, border: { display: false } },
+      y: { ticks: { color: c.text, font: { size:9.5, family:'JetBrains Mono' } }, grid: { color: c.grid }, border: { display: false } }
+    }
+  };
+}
+
+function destroyCharts() {
+  Object.values(charts).forEach(c => { if (c && typeof c.destroy === 'function') c.destroy(); });
+  charts = {};
+}
+
+function makeChart(id, type, labels, values, color, colorA, threshold) {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  const isBar = type === 'bar';
+  return new Chart(el, {
+    type,
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        borderColor: isBar ? undefined : color,
+        backgroundColor: isBar
+          ? values.map(v => v > (threshold || 999) ? 'rgba(196,90,62,.72)' : colorA.replace('.12','.42'))
+          : colorA,
+        fill: !isBar,
+        tension: 0.4,
+        pointRadius: 0,
+        borderWidth: 2,
+        borderRadius: isBar ? 2 : undefined
+      }]
+    },
+    options: chartCfg()
+  });
+}
+
+async function fetchLiveData() {
+  if (!apiUrl) return;
+  try {
+    const res = await fetch(apiUrl, { method:'GET', headers:{ 'Accept':'application/json' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const data = json.body ? JSON.parse(json.body) : json;
+    liveData = data;
+    setConnected(true);
+    const updEl = document.getElementById('last-upd');
+    if (updEl) updEl.textContent = new Date(data.fetched_at || Date.now()).toLocaleTimeString('en-GB', { hour12: false });
+    renderCharts(data);
+    renderAlarmCards(data);
+    renderGuardDuty(data.findings || []);
+    renderSystemStatus(data.system_status);
+    updateTicker(data.alarms || {});
+    if (!liveTimer) liveTimer = setInterval(fetchLiveData, 8000);
+  } catch(e) {
+    setConnected(false, e.message);
+    toast('err', 'API fetch failed: ' + e.message);
+  }
+}
+
+function setConnected(ok, msg) {
+  const dot = document.getElementById('cw-dot');
+  const txt = document.getElementById('cw-txt');
+  const bar = document.getElementById('live-bar');
+  if (dot) dot.className = 'cw-status-dot ' + (ok ? 'connected' : 'error');
+  if (txt) txt.textContent = ok ? 'Connected' : 'Error: ' + (msg || '');
+  if (ok && bar) bar.style.display = 'flex';
+}
+
+function renderCharts(data) {
+  const m = data.metrics || {};
+  destroyCharts();
+  if (m.publish_rate) {
+    const d = m.publish_rate;
+    charts.pub = makeChart('ch-publish','line',d.labels,d.values,CC().teal,CC().tealA);
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    setEl('cs-pub-cur', d.current); setEl('cs-pub-peak', d.peak); setEl('cs-pub-avg', d.avg);
+    setEl('cs-pub-anom', d.values.filter(v => v > d.avg * 3).length);
+  }
+  if (m.auth_failures) {
+    const d = m.auth_failures;
+    charts.auth = makeChart('ch-auth','bar',d.labels,d.values,CC().rust,CC().rustA,10);
+    const inA = d.peak > 10;
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    setEl('cs-auth-cur', d.current); setEl('cs-auth-peak', d.peak);
+    const stEl = document.getElementById('cs-auth-st');
+    if (stEl) { stEl.textContent = inA ? 'IN ALARM' : 'OK'; stEl.className = 'cst-v ' + (inA ? 'bad' : 'good'); }
+    const badge = document.getElementById('auth-badge'); if (badge) badge.style.display = inA ? '' : 'none';
+    const card = document.getElementById('cc-auth'); if (card) card.className = 'chart-card ' + (inA ? 'alarming' : '');
+  }
+  if (m.bytes_out) {
+    const d = m.bytes_out;
+    charts.bytes = makeChart('ch-bytes','line',d.labels,d.values,CC().sand,CC().sandA);
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    setEl('cs-bytes-cur', d.current); setEl('cs-bytes-avg', d.avg);
+    const ratEl = document.getElementById('cs-bytes-ratio');
+    if (ratEl) ratEl.textContent = d.avg > 0 ? (d.peak / d.avg).toFixed(1) + '×' : '—';
+  }
+  if (m.active_conns) {
+    const d = m.active_conns;
+    charts.conns = makeChart('ch-conns','line',d.labels,d.values,CC().slate,CC().slateA);
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    setEl('cs-conn-cur', d.current);
+    setEl('cs-conn-rogue', d.values.filter(v => v > 5).length);
+  }
+  if (m.brute_force) {
+    const d = m.brute_force;
+    charts.brute = makeChart('ch-brute','bar',d.labels,d.values,CC().rust,CC().rustA,-1);
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    setEl('cs-brute-cur', d.current);
+    setEl('cs-brute-total', d.values.reduce((a,b) => a+b, 0));
+    if (m.detect_latency) setEl('cs-brute-lat', (m.detect_latency.avg || 0) + 's');
+  }
+  if (m.rogue_device) {
+    const d = m.rogue_device;
+    charts.rogue = makeChart('ch-rogue','bar',d.labels,d.values,CC().moss,CC().mossA,-1);
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    setEl('cs-rogue-cur', d.current);
+    setEl('cs-rogue-total', d.values.reduce((a,b) => a+b, 0));
+  }
+}
+
+function setCard(id, state, reason) {
+  const card  = document.getElementById('aac-' + id);
+  const badge = document.getElementById('st-' + id);
+  const foot  = document.getElementById('ft-' + id);
+  if (!card) return;
+  card.className = 'aac ' + (state === 'ALARM' ? 'alarm' : state === 'OK' ? 'ok' : 'loading');
+  if (badge) {
+    badge.className = 'aac-state ' + (state === 'ALARM' ? 'as-alarm' : state === 'OK' ? 'as-ok' : 'as-load');
+    badge.textContent = state === 'ALARM' ? '🔴 ALARM' : state === 'OK' ? '✓ OK' : state === 'LOADING' ? '— —' : (state || '—');
+  }
+  if (foot) {
+    if (state === 'ALARM' && reason) foot.textContent = (reason.length > 58 ? reason.slice(0,58) + '…' : reason);
+    else if (state === 'OK') foot.textContent = 'No attack detected';
+    else foot.textContent = 'Waiting for data…';
+  }
+}
+
+function drawSparkline(id, values, color, threshold) {
+  const svg = document.getElementById(id);
+  if (!svg || !values || !values.length) return;
+  const W = 200, H = 40, p = 2;
+  const max = Math.max(...values, threshold || 0, 1);
+  const pts = values.map((v,i) => {
+    const x = p + (i / (values.length - 1 || 1)) * (W - p*2);
+    const y = H - p - (v / max) * (H - p*2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const thY = threshold > 0 ? H - p - (threshold / max) * (H - p*2) : null;
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity=".25"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${pts.join(' ')} ${W-p},${H} ${p},${H}" fill="url(#g${id})"/>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${thY !== null ? `<line x1="${p}" y1="${thY.toFixed(1)}" x2="${W-p}" y2="${thY.toFixed(1)}" stroke="rgba(196,90,62,.4)" stroke-width="1" stroke-dasharray="3,3"/>` : ''}
+  `;
+}
+
+function renderAlarmCards(data) {
+  const m  = data.metrics || {};
+  const al = data.alarms  || {};
+
+  // ── HELPER ──────────────────────────────────────────────────
+  const setV = (id, v, cls) => {
+    const e = document.getElementById(id);
+    if (e) { e.textContent = v; if (cls !== undefined) e.className = 'av-v ' + cls; }
+  };
+
+  // ── REAL AWS ALARM NAME MAP ──────────────────────────────────
+  // Matches your exact CloudWatch alarm names from the console:
+  //   Bruteforce1        → metric BruteForceAttack  (Insufficient data = no attack yet)
+  //   DDoSDetected       → metric DDoSDetected       (In alarm ✅)
+  //   DDoSDetectionAlarm → metric DDoSDetected       (In alarm ✅)
+  //   DataExfiltration   → metric DataExfiltration   (In alarm ✅)
+  //   RogueDevice1       → metric RogueDevice        (check state)
+  // We check all possible keys so ANY matching alarm triggers the card.
+  const getAlarm = (...keys) => {
+    for (const k of keys) {
+      if (al[k] && (al[k].state === 'ALARM' || al[k].state === 'OK')) return al[k];
+    }
+    // Second pass: also return INSUFFICIENT_DATA entries so cards show correctly
+    for (const k of keys) {
+      if (al[k]) return al[k];
+    }
+    return {};
+  };
+
+  // ── BRUTE FORCE ──────────────────────────────────────────────
+  // AWS alarm: "Bruteforce1"  metric: BruteForceAttack
+  const bf = getAlarm('Bruteforce1','BruteForce1','bruteforce1','BruteForce_Detection','BruteforceAlarm');
+  const bfCustom = m.brute_force;   // Lambda key: brute_force → SmartHomeSecurity/BruteForceAttack
+  const bfAuth   = m.auth_failures; // fallback: Connect.AuthError
+  const bfTotal  = bfCustom ? bfCustom.values.reduce((a,b)=>a+b,0) : 0;
+  const bfPeak   = bfCustom && bfCustom.peak > 0 ? bfCustom.peak : (bfAuth ? bfAuth.peak : 0);
+  const bfCur    = bfCustom ? bfCustom.current : (bfAuth ? bfAuth.current : 0);
+  const bfAlarm  = bf.state === 'ALARM' || bfTotal > 0 || bfPeak > 5;
+  const bfVals   = bfCustom && bfCustom.values.some(v=>v>0) ? bfCustom.values : (bfAuth ? bfAuth.values : []);
+  setV('v-brute-cur',  bfCur,  bfAlarm ? 'danger' : 'ok');
+  setV('v-brute-peak', bfPeak, bfPeak > 5 ? 'danger' : '');
+  if (bfVals.length) drawSparkline('sp-brute', bfVals, '#c45a3e', 5);
+  const ftBf = document.getElementById('ft-brute');
+  if (ftBf) ftBf.textContent = bfAlarm
+    ? `${bfTotal > 0 ? bfTotal + ' events' : 'Peak ' + bfPeak} — alarm threshold exceeded`
+    : `Peak ${bfPeak} — below threshold (5 attempts)`;
+  setCard('brute', bfAlarm ? 'ALARM' : 'OK',
+    bfAlarm ? (bf.reason || `BruteForce events: ${bfTotal > 0 ? bfTotal : bfPeak + ' peak'}`) : '');
+
+  // ── DDOS FLOOD ───────────────────────────────────────────────
+  // AWS alarms: "DDoSDetected" + "DDoSDetectionAlarm"  metric: DDoSDetected
+  const ddos = getAlarm('DDoSDetectionAlarm','DDoSDetected','DDoSFlood_Detection','DdosDetected','ddos');
+  const ddosCustom = m.ddos_flood || m.ddos;  // Lambda key: ddos_flood → SmartHomeSecurity/DDoSDetected
+  const pr         = m.publish_rate;
+  let ddosCur = 0, ddosRatio = '1.0×', ddosBase = 0, ddosAlarm = ddos.state === 'ALARM', ddosVals = [];
+  const ddosInsufficient = ddos.state === 'INSUFFICIENT_DATA' || (!ddos.state && !ddosCustom && !pr);
+  if (ddosCustom && ddosCustom.values && ddosCustom.values.some(v=>v>0)) {
+    const total = ddosCustom.values.reduce((a,b)=>a+b,0);
+    ddosCur   = ddosCustom.current;
+    ddosVals  = ddosCustom.values;
+    ddosAlarm = ddosAlarm || total > 0;
+    ddosRatio = ddosCustom.peak + ' events';
+    const ftD = document.getElementById('ft-ddos');
+    if (ftD) ftD.textContent = ddosAlarm ? `${total} DDoS flood events — alarm active` : 'No flood events';
+  } else if (pr) {
+    const ratio = pr.avg > 0 ? (pr.current / pr.avg) : 1;
+    ddosCur   = pr.current; ddosBase = pr.avg; ddosVals = pr.values;
+    ddosRatio = ratio.toFixed(1) + '×';
+    ddosAlarm = ddosAlarm || ratio > 5;
+    const ftD = document.getElementById('ft-ddos');
+    if (ftD) ftD.textContent = ddosAlarm ? `Spike ${ratio.toFixed(1)}× baseline — DDoS pattern` : `Rate ${ratio.toFixed(1)}× baseline — normal`;
+  } else {
+    // No metric data — show placeholder based on alarm state
+    ddosRatio = '1.0×';
+    const ftD = document.getElementById('ft-ddos');
+    if (ftD) ftD.textContent = ddosInsufficient ? 'Monitoring — insufficient data yet' : 'No attack detected';
+  }
+  setV('v-ddos-cur',   ddosCur,   ddosAlarm ? 'danger' : 'ok');
+  setV('v-ddos-base',  ddosBase || (pr ? pr.avg : 0), '');
+  setV('v-ddos-ratio', ddosRatio, ddosAlarm ? 'danger' : 'ok');
+  if (ddosVals.length) drawSparkline('sp-ddos', ddosVals, '#d4537e', (pr ? pr.avg * 5 : 10));
+  const ddosCardState = ddosAlarm ? 'ALARM' : ddosInsufficient ? 'LOADING' : 'OK';
+  setCard('ddos', ddosCardState,
+    ddosAlarm ? (ddos.reason || `DDoS detected — alarm: ${ddos.state || 'triggered'}`) : '');
+
+  // ── DATA EXFILTRATION ────────────────────────────────────────
+  // AWS alarm: "DataExfiltration"  metric: DataExfiltrationBytes
+  const ex = getAlarm('DataExfiltration','DataExfiltrationAlarm','Exfiltration_Detection','dataexfiltration');
+  const exCustom = m.data_exfiltration || m.exfiltration; // Lambda key: data_exfiltration
+  const bo       = m.bytes_out;
+  let exCur = 0, exRatio = '1.0×', exBase = 0, exAlarm = ex.state === 'ALARM', exVals = [];
+  const exInsufficient = ex.state === 'INSUFFICIENT_DATA' || (!ex.state && !exCustom && !bo);
+  if (exCustom && exCustom.values && exCustom.values.some(v=>v>0)) {
+    const total = exCustom.values.reduce((a,b)=>a+b,0);
+    exCur   = exCustom.current;
+    exVals  = exCustom.values;
+    exBase  = exCustom.avg || 0;
+    exAlarm = exAlarm || total > 0;
+    exRatio = total + ' events';
+    const ftE = document.getElementById('ft-exfil');
+    if (ftE) ftE.textContent = exAlarm ? `${total} exfiltration events — data burst detected` : 'No exfiltration detected';
+  } else if (bo) {
+    const ratio = bo.avg > 0 ? (bo.peak / bo.avg) : 1;
+    exCur   = bo.current; exBase = bo.avg; exVals = bo.values;
+    exRatio = ratio.toFixed(1) + '×';
+    exAlarm = exAlarm || ratio > 8;
+    const ftE = document.getElementById('ft-exfil');
+    if (ftE) ftE.textContent = exAlarm ? `Peak ${ratio.toFixed(1)}× baseline — exfiltration burst` : `Ratio ${ratio.toFixed(1)}× — within normal range`;
+  } else {
+    // No metric data — show placeholder based on alarm state
+    exRatio = '1.0×';
+    const ftE = document.getElementById('ft-exfil');
+    if (ftE) ftE.textContent = exInsufficient ? 'Monitoring — insufficient data yet' : 'No attack detected';
+  }
+  setV('v-exfil-cur',   exCur,   exAlarm ? 'danger' : 'ok');
+  setV('v-exfil-ratio', exRatio, exAlarm ? 'danger' : 'ok');
+  setV('v-exfil-base',  exBase,  '');
+  if (exVals.length) drawSparkline('sp-exfil', exVals, '#c4914a', Math.max(exBase * 8, 1));
+  const exCardState = exAlarm ? 'ALARM' : exInsufficient ? 'LOADING' : 'OK';
+  setCard('exfil', exCardState,
+    exAlarm ? (ex.reason || 'Data exfiltration burst detected') : '');
+
+  // ── ROGUE DEVICE ─────────────────────────────────────────────
+  // AWS alarm: "RogueDevice1"  metric: RogueDevice
+  const rg = getAlarm('RogueDevice1','RogueDevice_Detection','roguedevice1','RogueDeviceAlarm');
+  const rgCustom = m.rogue_device;
+  const rgTotal  = rgCustom ? rgCustom.values.reduce((a,b)=>a+b,0) : 0;
+  const rgAlarm  = rg.state === 'ALARM' || rgTotal > 0;
+  setV('v-rogue-cur',   rgCustom ? rgCustom.current : (rgAlarm ? '1' : '0'), rgAlarm ? 'danger' : 'ok');
+  setV('v-rogue-total', rgTotal || (rgAlarm ? '1' : '0'), '');
+  if (rgCustom && rgCustom.values.length) drawSparkline('sp-rogue', rgCustom.values, '#00c9a7', 0);
+  const ftRg = document.getElementById('ft-rogue');
+  if (ftRg) ftRg.textContent = rgAlarm
+    ? `${rgTotal || 1} rogue device event${(rgTotal||1) > 1 ? 's' : ''} detected`
+    : 'No unauthorised devices';
+  setCard('rogue', rgAlarm ? 'ALARM' : 'OK',
+    rgAlarm ? (rg.reason || `${rgTotal || 1} rogue device events detected`) : '');
+
+  renderPortScanCard(data.findings || []);
+  renderSecurityScore(al, data.findings || [], { bfAlarm, ddosAlarm, exAlarm, rgAlarm });
+}
+
+function renderPortScanCard(findings) {
+  const pf = findings.find(f => f.type && f.type.includes('PortProbe'));
+  if (pf) {
+    setCard('portscan','ALARM', pf.type);
+    const psCount = findings.filter(f => f.type && f.type.includes('PortProbe')).length;
+    const sev = parseFloat(pf.severity) || 0;
+    const sevLabel = sev >= 7 ? 'High' : sev >= 4 ? 'Med' : 'Low';
+    const sevClass = sev >= 7 ? 'danger' : sev >= 4 ? 'warn' : 'ok';
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    setEl('v-ps-count', psCount);
+    const sevEl = document.getElementById('v-ps-sev');
+    if (sevEl) { sevEl.textContent = sevLabel; sevEl.className = 'av-v ' + sevClass; }
+    setEl('ps-type', pf.type);
+    setEl('ft-ps','GuardDuty finding active');
+  } else {
+    setCard('portscan','OK','');
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    setEl('v-ps-count','0');
+    const sevEl = document.getElementById('v-ps-sev');
+    if (sevEl) { sevEl.textContent = '—'; sevEl.className = 'av-v'; }
+    setEl('ps-type','No PortProbe finding in last 24h');
+    setEl('ft-ps','GuardDuty monitoring');
+  }
+}
+
+function renderSecurityScore(alarms, findings, alarmFlags) {
+  // Use comprehensive alarm flags if provided (avoids alarm name mismatch with real AWS names)
+  let active;
+  const hasPortScan = findings.some(f => f.type && f.type.includes('PortProbe')) ? 1 : 0;
+  if (alarmFlags) {
+    const { bfAlarm, ddosAlarm, exAlarm, rgAlarm } = alarmFlags;
+    active = [bfAlarm, ddosAlarm, exAlarm, rgAlarm].filter(Boolean).length + hasPortScan;
+  } else {
+    const alarmKeys = ['BruteForce_Detection','DDoSFlood_Detection','Exfiltration_Detection','RogueDevice_Detection'];
+    active = alarmKeys.filter(k => alarms[k] && alarms[k].state === 'ALARM').length + hasPortScan;
+  }
+  const total = 5;
+  const score = Math.round(((total - active) / total) * 100);
+  const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  const scoreEl = document.getElementById('v-score');
+  if (scoreEl) { scoreEl.textContent = score; scoreEl.className = 'av-v ' + (score < 50 ? 'danger' : score < 80 ? 'warn' : 'ok'); }
+  setEl('v-active', active);
+  setEl('v-ok', total - active);
+  const bar = document.getElementById('score-bar');
+  if (bar) { bar.style.width = score + '%'; bar.style.background = score >= 75 ? 'var(--ml)' : score >= 50 ? 'var(--sdl)' : 'var(--rl)'; }
+  // setCard handles the st-score badge (ALARM / OK) — do NOT override it with score text afterwards
+  setCard('score', active > 0 ? 'ALARM' : 'OK', active > 0 ? `${active} active alarm${active > 1 ? 's' : ''}` : 'All clear');
+  const ftEl = document.getElementById('ft-score');
+  if (ftEl) ftEl.textContent = active > 0 ? `⚠ ${active} attack${active > 1 ? 's' : ''} detected · Score: ${score}/100` : `✓ No active threats · Score: ${score}/100`;
+}
+
+function renderSystemStatus(status) {
+  const chip = document.getElementById('sys-chip');
+  if (!chip) return;
+  if (status === 'UNDER_ATTACK') { chip.textContent = '⚠ Under Attack'; chip.className = 'sys-chip danger'; }
+  else { chip.textContent = '✓ System Secure'; chip.className = 'sys-chip'; }
+}
+
+function renderGuardDuty(findings) {
+  const statusEl = document.getElementById('gd-status');
+  if (statusEl) statusEl.textContent = `${findings.length} finding${findings.length !== 1 ? 's' : ''} in last 24h`;
+  const tb = document.getElementById('gd-tbody');
+  if (!tb) return;
+  if (!findings.length) {
+    tb.innerHTML = '<tr class="er"><td colspan="5">No GuardDuty findings in last 24 hours</td></tr>';
+    return;
+  }
+  if (findings[0] && findings[0].error) {
+    tb.innerHTML = `<tr class="er"><td colspan="5">Error: ${escHtml(findings[0].error)}</td></tr>`;
+    return;
+  }
+  tb.innerHTML = findings.map(f => {
+    const t = new Date(f.updated_at).toLocaleTimeString('en-GB', { hour12: false });
+    const sev = parseFloat(f.severity) || 0;
+    const cls = sev >= 7 ? 'b-missed' : sev >= 4 ? 'b-partial' : 'b-detected';
+    const lbl = sev >= 7 ? 'High' : sev >= 4 ? 'Medium' : 'Low';
+    return `<tr>
+      <td class="ts">${t}</td>
+      <td style="font-family:var(--fm);font-size:11px;color:var(--t2)">${escHtml(f.type)}</td>
+      <td><span class="badge ${cls}">${lbl} (${sev})</span></td>
+      <td class="mono" style="font-size:11px">${escHtml(f.resource)}</td>
+      <td><span class="badge b-trig">Active</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateTicker(alarms) {
+  const now = new Date().toLocaleTimeString('en-GB', { hour12: false });
+  const tsEl = document.getElementById('ticker-ts');
+  if (tsEl) tsEl.textContent = now;
+  const defs = [
+    { key:'BruteForce_Detection',    label:'Brute Force',   device:'Smart Lock' },
+    { key:'DDoSFlood_Detection',      label:'DDoS Flood',    device:'Smart Bulb' },
+    { key:'Exfiltration_Detection',   label:'Exfiltration',  device:'IP Camera' },
+    { key:'RogueDevice_Detection',    label:'Rogue Device',  device:'Unknown' }
+  ];
+  const items = [];
+  for (const d of defs) {
+    const a = alarms[d.key] || {};
+    items.push(a.state === 'ALARM'
+      ? { cls:'alert', text:`🔴 ALARM · ${d.label} · ${d.device} · ${now}` }
+      : { cls:'safe',  text:`✓ ${d.label} · Secure` }
+    );
+  }
+  items.push({ cls:'info', text:'🛡 SmartShield monitoring 5 attack vectors · Auto-refresh 8s' });
+  items.push({ cls:'info', text:'📡 AWS IoT Core · GuardDuty · CloudWatch · Lambda · API Gateway' });
+  // Duplicate for seamless loop
+  const html = [...items, ...items].map(i => `<div class="ti ${i.cls}">${i.text}</div>`).join('');
+  const track = document.getElementById('ticker-track');
+  if (track) track.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════
+//  DEMO MODE
+// ═══════════════════════════════════════════════
+function demoAlarm(type) {
+  if (type === 'clear') {
+    Object.keys(demoState).forEach(k => demoState[k] = false);
+    ['brute','ddos','exfil','rogue','portscan'].forEach(id => setCard(id, 'OK', ''));
+    setCard('score','OK','');
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    setEl('v-score','100'); setEl('v-active','0'); setEl('v-ok','5');
+    const bar = document.getElementById('score-bar');
+    if (bar) { bar.style.width='100%'; bar.style.background='var(--ml)'; }
+    const ftEl=document.getElementById('ft-score'); if(ftEl) ftEl.textContent='✓ No active threats · Score: 100/100';
+    updateTicker({});
+    toast('ok','All alarms cleared');
+    return;
+  }
+
+  const targets = type === 'all' ? ['brute','ddos','exfil','rogue','portscan'] : [type];
+  const reasons = {
+    brute:'Connect.AuthError: 147 failures/min · threshold 10/min exceeded',
+    ddos: 'PublishIn.Success: 500 msgs/min · 83× above baseline of 6/min',
+    exfil:'PublishIn.Bytes: 0.57MB burst · 285× above 2KB baseline',
+    rogue:'Unknown device Rogue_Device_99 attempted MQTT connection at TLS layer',
+    portscan:'GuardDuty: Recon:EC2/PortProbeUnprotectedPort · Severity 8.0 · High'
+  };
+  const demos = {
+    brute:    { vals:[0,0,1,2,0,3,1,0,0,0,0,147,120,88,50,20],  color:'#c45a3e', thr:10 },
+    ddos:     { vals:[5,6,4,5,6,5,4,5,5,6,5,500,480,420,380,320], color:'#d4537e', thr:30 },
+    exfil:    { vals:[2,1,2,2,1,2,2,1,2,2,1,570,480,350,200,80], color:'#c4914a', thr:16 },
+    rogue:    { vals:[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],          color:'#00c9a7', thr:0  }
+  };
+
+  targets.forEach(t => {
+    demoState[t] = true;
+    setCard(t, 'ALARM', reasons[t] || 'Attack detected');
+    const d = demos[t];
+    const setV = (id,v,cls) => { const e=document.getElementById(id); if(e){e.textContent=v; if(cls!==undefined) e.className='av-v '+cls;} };
+    if (d) {
+      if (t === 'brute') {
+        setV('v-brute-cur','147','danger'); setV('v-brute-peak','147','danger');
+        drawSparkline('sp-brute',d.vals,d.color,d.thr);
+        const ft=document.getElementById('ft-brute'); if(ft) ft.textContent='Peak 147/min — alarm threshold 10 exceeded';
+      }
+      if (t === 'ddos') {
+        setV('v-ddos-cur','500','danger'); setV('v-ddos-ratio','83×','danger');
+        const base=document.getElementById('v-ddos-base'); if(base) base.textContent='6';
+        drawSparkline('sp-ddos',d.vals,d.color,d.thr);
+        const ft=document.getElementById('ft-ddos'); if(ft) ft.textContent='Spike 83× baseline — DDoS flood pattern';
+      }
+      if (t === 'exfil') {
+        setV('v-exfil-cur','285×','danger'); setV('v-exfil-ratio','285×','danger');
+        const base=document.getElementById('v-exfil-base'); if(base) base.textContent='2KB';
+        drawSparkline('sp-exfil',d.vals,d.color,d.thr);
+        const ft=document.getElementById('ft-exfil'); if(ft) ft.textContent='Peak 285× baseline — exfiltration burst';
+      }
+      if (t === 'rogue') {
+        setV('v-rogue-cur','1','danger'); setV('v-rogue-total','1','');
+        drawSparkline('sp-rogue',d.vals,d.color,d.thr);
+        const ft=document.getElementById('ft-rogue'); if(ft) ft.textContent='Rogue_Device_99 attempted connection';
+      }
+    }
+    if (t === 'portscan') {
+      setV('v-ps-count','1',''); 
+      const sevEl=document.getElementById('v-ps-sev'); if(sevEl){sevEl.textContent='High';sevEl.className='av-v danger';}
+      const ptEl=document.getElementById('ps-type'); if(ptEl) ptEl.textContent='Recon:EC2/PortProbeUnprotectedPort';
+      const ftEl=document.getElementById('ft-ps'); if(ftEl) ftEl.textContent='GuardDuty High severity finding';
+    }
+  });
+
+  const active = Object.values(demoState).filter(Boolean).length;
+  const sc = Math.round(((5 - active) / 5) * 100);
+  const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  const scoreEl=document.getElementById('v-score'); if(scoreEl){scoreEl.textContent=sc;scoreEl.className='av-v '+(sc<50?'danger':sc<80?'warn':'ok');}
+  setEl('v-active', active); setEl('v-ok', 5 - active);
+  const bar = document.getElementById('score-bar');
+  if (bar) { bar.style.width=sc+'%'; bar.style.background=sc>=75?'var(--ml)':sc>=50?'var(--sdl)':'var(--rl)'; }
+  // setCard sets the st-score badge (ALARM/OK) — do NOT override it with score text
+  setCard('score', active > 0 ? 'ALARM' : 'OK', active > 0 ? `${active} active alarm${active > 1 ? 's' : ''}` : 'All clear');
+  const ftEl=document.getElementById('ft-score'); if(ftEl) ftEl.textContent=active > 0 ? `⚠ ${active} attack${active > 1 ? 's' : ''} detected · Score: ${sc}/100` : `✓ No active threats · Score: ${sc}/100`;
+
+  const tMap = { brute:'BruteForce_Detection',ddos:'DDoSFlood_Detection',exfil:'Exfiltration_Detection',rogue:'RogueDevice_Detection' };
+  const demoAlarmObj = {};
+  Object.entries(demoState).forEach(([k,v]) => { if (v && tMap[k]) demoAlarmObj[tMap[k]] = { state:'ALARM' }; });
+  updateTicker(demoAlarmObj);
+  toast('ok', `Demo: ${type === 'all' ? 'all alarms' : type} activated`);
+}
+
+// ═══════════════════════════════════════════════
+//  GEMINI AI
+// ═══════════════════════════════════════════════
+let geminiKey = '';
+
+function saveGeminiKey() {
+  const el = document.getElementById('gemini-key');
+  geminiKey = el ? el.value.trim() : '';
+  if (!geminiKey) { toast('err','Enter a valid API key'); return; }
+  const stEl = document.getElementById('ai-status');
+  if (stEl) { stEl.textContent = 'Key saved ✓'; stEl.className = 'ai-st ready'; }
+  toast('ok','Gemini key saved');
+}
+
+function buildContext() {
+  const total = runs.length;
+  let expCtx;
+  if (!total) {
+    expCtx = 'No experiment data yet.';
+  } else {
+    const det = runs.filter(r => r.gd === 'Detected' || r.cw === 'Detected').length;
+    const mis = runs.filter(r => r.gd === 'Missed' && r.cw === 'Missed').length;
+    const byAtk = ATTACKS.map(a => {
+      const ar = runs.filter(r => r.attack === a);
+      if (!ar.length) return `${a}: no runs yet`;
+      const gdD = ar.filter(r => r.gd === 'Detected').length;
+      const cwD = ar.filter(r => r.cw === 'Detected').length;
+      const lats = ar.filter(r => r.latency).map(r => r.latency);
+      const avg = lats.length ? Math.round(lats.reduce((a,b) => a+b) / lats.length) : null;
+      return `${a}: ${ar.length} runs, GuardDuty ${gdD}/${ar.length}, CloudWatch ${cwD}/${ar.length}${avg ? ', avg latency '+avg+'s' : ''}`;
+    }).join('\n');
+    expCtx = `Runs: ${total}, Detections: ${det}, Missed: ${mis}\n${byAtk}`;
+  }
+
+  let awsCtx = 'No live AWS data.';
+  if (liveData) {
+    const m = liveData.metrics || {};
+    const al = liveData.alarms || {};
+    const fi = liveData.findings || [];
+    awsCtx = [
+      `System: ${liveData.system_status}`,
+      `Auth failures — current: ${m.auth_failures?.current}, peak: ${m.auth_failures?.peak}`,
+      `Publish rate — current: ${m.publish_rate?.current}, avg: ${m.publish_rate?.avg}`,
+      `Brute force events: ${(m.brute_force?.values || []).reduce((a,b) => a+b, 0)}`,
+      `Rogue device events: ${(m.rogue_device?.values || []).reduce((a,b) => a+b, 0)}`,
+      `BruteForce alarm: ${al['BruteForce_Detection']?.state || 'unknown'}`,
+      `GuardDuty findings: ${fi.length}`,
+      ...fi.slice(0,3).map(f => `  - ${f.type} sev:${f.severity}`)
+    ].join('\n');
+  }
+  return `Project: Real-Time Anomaly Detection in Smart Home IoT Networks (AWS FYP)\n\nExperiment data:\n${expCtx}\n\nLive AWS data:\n${awsCtx}`;
+}
+
+const QUICK = {
+  why_missed:      'Based on the experiment data, explain why some attacks were missed by both GuardDuty and CloudWatch. What are the technical blind spots?',
+  brute_force:     'Explain how the brute force MQTT attack was handled. What finding type did GuardDuty generate? What CloudWatch metric caught it?',
+  guardduty_vs_cw: 'Compare GuardDuty and CloudWatch Alarms for IoT attacks. When is each better? What are the detection latency differences?',
+  improve:         'Give 3-5 specific technical recommendations to improve detection coverage for attacks that were missed.',
+  stealth:         'Why do slow/stealth attacks evade GuardDuty and CloudWatch threshold-based alarms? What techniques can catch them?',
+  summary:         'Write a 150-word thesis-quality paragraph summarising experiment results, detection rates, and research contributions.',
+  live_aws:        'Based on the live AWS CloudWatch data, identify active threats, explain what metrics indicate about current behaviour, and flag anomalies.',
+};
+
+async function quickPrompt(key) {
+  const el = document.getElementById('ai-question');
+  if (el) el.value = QUICK[key] || '';
+  await runGemini();
+}
+
+async function runGemini() {
+  const keyEl = document.getElementById('gemini-key');
+  const key   = geminiKey || (keyEl ? keyEl.value.trim() : '');
+  const ctx   = buildContext();
+  const atkEl = document.getElementById('ai-atk');
+  const focEl = document.getElementById('ai-focus');
+  const qEl   = document.getElementById('ai-question');
+  const out   = document.getElementById('ai-output');
+  if (!out) return;
+
+  const atk    = atkEl ? atkEl.value : 'all';
+  const focus  = focEl ? focEl.value : 'thesis';
+  const custom = qEl   ? qEl.value.trim() : '';
+
+  const prompt = custom || `Regarding ${atk === 'all' ? 'all attack types' : atk}, analyse with focus on: ${focus}. Be specific, technical, thesis-worthy.`;
+  const full   = `You are a cloud security expert helping a cybersecurity student analyse their final year project.\n\nContext:\n${ctx}\n\nQuestion: ${prompt}\n\nProvide structured, technically accurate insights for the thesis.`;
+
+  out.innerHTML = `<div class="ai-body"><div class="ai-ph"><div class="ai-typing"><span></span><span></span><span></span></div><div>Analysing with Gemini…</div></div></div>`;
+
+  if (!key) {
+    await new Promise(r => setTimeout(r, 1400));
+    out.innerHTML = `<div class="ai-body"><div class="ai-content">
+      <div style="background:rgba(196,145,74,.07);border:1px solid rgba(196,145,74,.18);border-radius:8px;padding:10px 14px;font-size:11.5px;font-family:var(--fm);color:var(--sdl);margin-bottom:16px">
+        ⚠ Demo mode — add your Gemini API key above for real analysis (free at aistudio.google.com)
+      </div>
+      <h3>Why Tools Missed Certain Attacks</h3>
+      <p>Three primary technical reasons explain detection failures in the SmartShield lab environment:</p>
+      <ul>
+        <li><strong>Threshold blind spots:</strong> CloudWatch alarms require exceeding a static threshold (e.g. 10 auth failures/min). A slow brute-force sending 9 failures/minute — just below the threshold — carries identical security risk but generates zero alerts. This is a fundamental limitation of static threshold-based detection.</li>
+        <li><strong>GuardDuty baseline period:</strong> Requires 24–48 hours of VPC traffic data before ML models generate reliable findings. Early-phase attacks executed before baseline completion produce no findings even if clearly malicious by pattern analysis.</li>
+        <li><strong>IoT vs VPC coverage gap:</strong> GuardDuty analyses VPC Flow Logs, DNS queries, and CloudTrail events. MQTT payloads traversing AWS IoT Core stay within the managed IoT layer — they never generate VPC-level events. Therefore, IoT-specific attacks like data exfiltration via large MQTT payloads are architecturally invisible to GuardDuty.</li>
+      </ul>
+      <h3>Key Research Contribution</h3>
+      <p>This experiment empirically demonstrates that <code>cloud-native security tools optimised for EC2/VPC infrastructure show systematic blind spots for MQTT-based IoT attack patterns</code> — specifically slow-and-low credential attacks and exfiltration via the IoT broker layer. A multi-layer detection strategy combining CloudWatch thresholds + GuardDuty ML + Lambda custom logic achieves higher coverage than any single tool alone.</p>
+    </div></div>`;
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: full }] }] })
+    });
+    const data = await res.json();
+    if (data.error) {
+      out.innerHTML = `<div class="ai-body"><div style="color:var(--rl);font-family:var(--fm);font-size:12.5px;padding:18px">Error: ${escHtml(data.error.message)}</div></div>`;
+      return;
+    }
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received';
+    const html = text
+      .replace(/^### (.*)/gm, '<h3>$1</h3>')
+      .replace(/^## (.*)/gm,  '<h3>$1</h3>')
+      .replace(/^# (.*)/gm,   '<h3>$1</h3>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`(.*?)`/g,       '<code>$1</code>')
+      .replace(/^- (.*)/gm,      '<li>$1</li>')
+      .replace(/(<li>.*<\/li>[\n]?)+/g, '<ul>$&</ul>')
+      .replace(/\n\n/g, '</p><p>');
+    out.innerHTML = `<div class="ai-body"><div class="ai-content"><p>${html}</p></div></div>`;
+  } catch(e) {
+    out.innerHTML = `<div class="ai-body"><div style="color:var(--rl);font-family:var(--fm);font-size:12.5px;padding:18px">Connection error: ${escHtml(e.message)}</div></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  TOAST NOTIFICATIONS
+// ═══════════════════════════════════════════════
+function toast(type, msg) {
+  const icons = { ok:'✓', inf:'ℹ', err:'✕' };
+  const root  = document.getElementById('toast-root');
+  if (!root) return;
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span style="font-weight:700">${icons[type] || 'ℹ'}</span><span>${escHtml(msg)}</span>`;
+  root.appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'tout .28s var(--ease) forwards';
+    setTimeout(() => { if (el.parentNode) el.remove(); }, 300);
+  }, 3400);
+}
+
+// ═══════════════════════════════════════════════
+//  INITIALISE
+// ═══════════════════════════════════════════════
+renderAll();
+updateTicker({});
+</script>
+</body>
+</html>
